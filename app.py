@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import pyreadstat
@@ -66,13 +65,14 @@ if uploaded_file is not None:
         st.write("New column names after resolving duplicates:")
         st.write(df.columns.tolist())
 
+
     # Column mapping
     st.subheader("Map Your Columns")
     col_options = [''] + list(df.columns)
-    consent_col = st.selectbox("Select column for Consent (e.g., 1/0, yes/no)", col_options, index=col_options.index('consent') if 'consent' in col_options else 0)
+    consent_col = st.selectbox("Select column for Consent (e.g., 1/0, yes/no)", col_options, index=0)
     enum_col = st.selectbox("Select column for Enumerator (e.g., enum or enum_lab)", col_options, index=col_options.index('enum') if 'enum' in col_options else 0)
     village_col = st.selectbox("Select column for Village (optional)", col_options, index=0)
-    fielddate_col = st.selectbox("Select column for Field Date (e.g., int_date)", col_options, index=col_options.index('int_date') if 'int_date' in col_options else 0)
+    fielddate_col = st.selectbox("Select column for Field Date (fielddate)", col_options, index=0 if 'fielddate' not in df.columns else df.columns.get_loc('fielddate') + 1)
 
     if not all([consent_col, enum_col, fielddate_col]):
         st.warning("Please select columns for Consent, Enumerator, and Field Date to proceed.")
