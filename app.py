@@ -13,6 +13,7 @@ Upload your .dta or .xlsx file to generate a daily survey count sheet by enumera
 Counts are split into two rows per enumerator (and grouping variable, if selected): one for consent 'Yes' and one for 'No'.
 Includes a Total column summing counts across dates. Map your columns and choose a date header style.
 For .dta files, enumerator labels are applied automatically if available. Use 'enum' for labels or 'enum_lab' for SurveyCTO calculated labels.
+If a 'starttime' column is present, the date will be derived from it by default, similar to Stata's 'gen fielddate = dofc(starttime)'.
 """)
 
 # File uploader
@@ -71,10 +72,26 @@ if uploaded_file is not None:
     # Column mapping
     st.subheader("Map Your Columns")
     col_options = [''] + list(df.columns)
-    consent_col = st.selectbox("Select column for Consent (e.g., 1/0, yes/no)", col_options, index=0)
-    enum_col = st.selectbox("Select column for Enumerator (e.g., enum or enum_lab)", col_options, index=col_options.index('enum') if 'enum' in col_options else 0)
-    grouping_var_col = st.selectbox("Select column for Address/Location (e.g., village, landmark, upazilla, optional)", col_options, index=0)
-    date_col = st.selectbox("Select column for Date (e.g., fielddate, survey_date, collection_date)", col_options, index=col_options.index('fielddate') if 'fielddate' in col_options else 0)
+    consent_col = st.selectbox(
+        "Select column for Consent (e.g., 1/0, yes/no)",
+        col_options,
+        index=col_options.index('consent') if 'consent' in col_options else 0
+    )
+    enum_col = st.selectbox(
+        "Select column for Enumerator (e.g., enum or enum_lab)",
+        col_options,
+        index=col_options.index('enum') if 'enum' in col_options else (col_options.index('enum_lab') if 'enum_lab' in col_options else 0)
+    )
+    grouping_var_col = st.selectbox(
+        "Select column for Address/Location (e.g., village, landmark, upazilla, optional)",
+        col_options,
+        index=0
+    )
+    date_col = st.selectbox(
+        "Select column for Date (e.g., fielddate, survey_date, collection_date, starttime)",
+        col_options,
+        index=col_options.index('starttime') if 'starttime' in col_options else (col_options.index('fielddate') if 'fielddate' in col_options else 0)
+    )
 
     if not all([consent_col, enum_col, date_col]):
         st.warning("Please select columns for Consent, Enumerator, and Date to proceed.")
@@ -83,12 +100,53 @@ if uploaded_file is not None:
     # Rename columns to standard names
     rename_dict = {
         consent_col: 'consent',
-        enum_col: 'enum',
-        date_col: 'date'
+        enum_col: 'enum'
     }
     if grouping_var_col:
         rename_dict[grouping_var_col] = 'grouping_var'
     df = df.rename(columns=rename_dict)
+
+    # Generate date from starttime if selected, otherwise use the selected date column
+    if date_col == 'starttime':
+        try:
+            df['date'] = pd.to_datetime(df['starttime'], errors='coerce').dt.date
+            invalid_dates = df['date'].isna().sum()
+            if invalid_dates > 0:
+                st.warning(f"{invalid_dates} rows have invalid dates in 'starttime' and will be dropped. Check your 'starttime' column for non-datetime values.")
+                if 'starttime' in df.columns:
+                    st.write("Sample of invalid 'starttime' values (first 5):")
+                    st.write(df[df['date'].isna()][['starttime']].head())
+                else:
+                    st.write("Error: 'starttime' column not found after mapping.")
+            df = df.dropna(subset=['date'])
+        except Exception as e:
+            st.error(f"Failed to convert 'starttime' to date: {e}")
+            if 'starttime' in df.columns:
+                st.write("First 5 values of 'starttime' column for debugging:")
+                st.write(df['starttime'].head())
+                st.write("Unique values in 'starttime':")
+                st.write(df['starttime'].unique()[:10])
+            st.stop()
+    else:
+        try:
+            df['date'] = pd.to_datetime(df[date_col], errors='coerce').dt.date
+            invalid_dates = df['date'].isna().sum()
+            if invalid_dates > 0:
+                st.warning(f"{invalid_dates} rows have invalid dates in '{date_col}' and will be dropped. Check your date column for non-date values.")
+                if date_col in df.columns:
+                    st.write(f"Sample of invalid '{date_col}' values (first 5):")
+                    st.write(df[df['date'].isna()][[date_col]].head())
+                else:
+                    st.write(f"Error: '{date_col}' column not found after mapping.")
+            df = df.dropna(subset=['date'])
+        except Exception as e:
+            st.error(f"Failed to convert '{date_col}' to date: {e}")
+            if date_col in df.columns:
+                st.write(f"First 5 values of '{date_col}' column for debugging:")
+                st.write(df[date_col].head())
+                st.write(f"Unique values in '{date_col}':")
+                st.write(df[date_col].unique()[:10])
+            st.stop()
 
     # Check required variables
     required_vars = ['consent', 'enum', 'date']
@@ -151,22 +209,9 @@ if uploaded_file is not None:
             st.write(df['grouping_var'].head())
             st.stop()
 
-    # Convert date to datetime
-    try:
-        df['date'] = pd.to_datetime(df['date'], errors='coerce')
-        invalid_dates = df['date'].isna().sum()
-        if invalid_dates > 0:
-            st.warning(f"{invalid_dates} rows have invalid dates and will be dropped. Check your date column for non-date values.")
-            st.write("Sample of invalid date values (first 5):")
-            st.write(df[df['date'].isna()][['date']].head())
-        df = df.dropna(subset=['date'])
-    except Exception as e:
-        st.error(f"Failed to convert 'date' to datetime: {e}")
-        st.write("First 5 values of 'date' column for debugging:")
-        st.write(df['date'].head())
-        st.write("Unique values in 'date':")
-        st.write(df['date'].unique()[:10])
-        st.stop()
+    # Ensure date is in datetime format for grouping
+    df['date'] = pd.to_datetime(df['date'], errors='coerce')
+    df = df.dropna(subset=['date'])
 
     if len(df) == 0:
         st.warning("No valid dates after conversion. Nothing to process.")
