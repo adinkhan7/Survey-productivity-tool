@@ -182,6 +182,9 @@ if uploaded_file is not None:
             return 'Unknown'
 
     try:
+        # Convert enum to string, handling categoricals
+        if df['enum'].dtype.name == 'category':
+            df['enum'] = df['enum'].astype(str).replace('nan', 'Unknown')
         df['enum'] = df['enum'].map(safe_to_string)
     except Exception as e:
         st.error(f"Failed to convert 'enum' to string: {e}")
@@ -193,11 +196,12 @@ if uploaded_file is not None:
 
     if grouping_var_col and 'grouping_var' in df.columns:
         try:
+            # Convert grouping_var to string, handling categoricals
+            if df['grouping_var'].dtype.name == 'category':
+                df['grouping_var'] = df['grouping_var'].astype(str).replace('nan', 'Unknown')
             df['grouping_var'] = df['grouping_var'].map(safe_to_string)
             df['grouping_var'] = df['grouping_var'].fillna('Unknown')  # Handle NaN
-            # Debug grouping_var column
-            st.write("Debug: Unique values in 'grouping_var' column after conversion:")
-            st.write(df['grouping_var'].unique()[:10])
+            # Check for nested data
             if df['grouping_var'].apply(lambda x: isinstance(x, (list, dict, tuple))).any():
                 st.error("Error: 'grouping_var' column contains nested data (lists/dicts) after conversion.")
                 st.write("Sample of 'grouping_var' column:")
