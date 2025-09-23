@@ -10,7 +10,8 @@ from datetime import datetime
 st.title("Enumerator Daily Survey Productivity Tool")
 st.markdown("""
 Upload your .dta or .xlsx file to generate a daily survey count sheet by enumerator and an optional grouping variable (e.g., village, landmark, upazilla).
-Counts are split into two rows per enumerator (and grouping variable, if selected): one for consent 'Yes' and one for 'No'.
+If a consent column is selected, counts are split into two rows per enumerator (and grouping variable, if selected): one for consent 'Yes' and one for 'No'.
+If no consent column is selected, counts are provided per enumerator (and grouping variable, if selected) without splitting by consent.
 Includes a Total column summing counts across dates. Map your columns and choose a date header style.
 For .dta files, enumerator labels are applied automatically if available. Use 'enum' for labels or 'enum_lab' for SurveyCTO calculated labels.
 If a 'starttime' column is present, the date will be derived from it by default, similar to Stata's 'gen fielddate = dofc(starttime)'.
@@ -73,7 +74,7 @@ if uploaded_file is not None:
     st.subheader("Map Your Columns")
     col_options = [''] + list(df.columns)
     consent_col = st.selectbox(
-        "Select column for Consent (e.g., 1/0, yes/no)",
+        "Select column for Consent (e.g., 1/0, yes/no, optional)",
         col_options,
         index=col_options.index('consent') if 'consent' in col_options else 0
     )
@@ -93,15 +94,14 @@ if uploaded_file is not None:
         index=col_options.index('starttime') if 'starttime' in col_options else (col_options.index('fielddate') if 'fielddate' in col_options else 0)
     )
 
-    if not all([consent_col, enum_col, date_col]):
-        st.warning("Please select columns for Consent, Enumerator, and Date to proceed.")
+    if not all([enum_col, date_col]):
+        st.warning("Please select columns for Enumerator and Date to proceed.")
         st.stop()
 
     # Rename columns to standard names
-    rename_dict = {
-        consent_col: 'consent',
-        enum_col: 'enum'
-    }
+    rename_dict = {enum_col: 'enum'}
+    if consent_col:
+        rename_dict[consent_col] = 'consent'
     if grouping_var_col:
         rename_dict[grouping_var_col] = 'grouping_var'
     df = df.rename(columns=rename_dict)
@@ -149,7 +149,9 @@ if uploaded_file is not None:
             st.stop()
 
     # Check required variables
-    required_vars = ['consent', 'enum', 'date']
+    required_vars = ['enum', 'date']
+    if consent_col:
+        required_vars.append('consent')
     if grouping_var_col and 'grouping_var' not in df.columns:
         st.error("Mapped Address/Location column not found in data. Skipping.")
         st.stop()
@@ -160,6 +162,8 @@ if uploaded_file is not None:
 
     # Drop missing required columns
     required_cols = ['enum', 'date']
+    if consent_col:
+        required_cols.append('consent')
     if grouping_var_col and 'grouping_var' in df.columns:
         required_cols.append('grouping_var')
     df = df.dropna(subset=required_cols)
@@ -221,16 +225,19 @@ if uploaded_file is not None:
         st.warning("No valid dates after conversion. Nothing to process.")
         st.stop()
 
-    # Categorize consent
-    def categorize_consent(x):
-        x_str = str(x).lower().strip()
-        if x_str in ['1', 'yes', 'true', 'y']:
-            return 'Yes'
-        return 'No'
-    df['Consent_Status'] = df['consent'].apply(categorize_consent)
+    # Categorize consent if provided
+    if consent_col:
+        def categorize_consent(x):
+            x_str = str(x).lower().strip()
+            if x_str in ['1', 'yes', 'true', 'y']:
+                return 'Yes'
+            return 'No'
+        df['Consent_Status'] = df['consent'].apply(categorize_consent)
 
     # Compute daily count
-    group_cols = ['enum', 'Consent_Status']
+    group_cols = ['enum']
+    if consent_col:
+        group_cols.append('Consent_Status')
     if grouping_var_col and 'grouping_var' in df.columns:
         group_cols.insert(1, 'grouping_var')
 
@@ -255,7 +262,9 @@ if uploaded_file is not None:
         st.stop()
 
     # Reshape wide
-    index_cols = ['enum', 'Consent_Status']
+    index_cols = ['enum']
+    if consent_col:
+        index_cols.append('Consent_Status')
     if grouping_var_col and 'grouping_var' in df.columns:
         index_cols.insert(1, 'grouping_var')
     reshaped = (
@@ -282,7 +291,7 @@ if uploaded_file is not None:
             renamed_cols[col] = safe_name
     reshaped = reshaped.rename(columns=renamed_cols)
 
-    st.success(f"Processed! Generated {len(reshaped)} rows with counts for 'Yes' and 'No' consent.")
+    st.success(f"Processed! Generated {len(reshaped)} rows with counts{' for \"Yes\" and \"No\" consent' if consent_col else ''}.")
 
     # Prepare for Excel export based on header style
     pretty_reshaped = reshaped.copy()
