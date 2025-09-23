@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import pyreadstat
@@ -10,8 +9,8 @@ from datetime import datetime
 # App title and description
 st.title("Enumerator Daily Survey Productivity Tool")
 st.markdown("""
-Upload your .dta or .xlsx file to generate a daily survey count sheet by enumerator and optional village.
-Counts are split into two rows per enumerator (and village, if selected): one for consent 'Yes' and one for 'No'.
+Upload your .dta or .xlsx file to generate a daily survey count sheet by enumerator and an optional grouping variable (e.g., village, landmark, upazilla).
+Counts are split into two rows per enumerator (and grouping variable, if selected): one for consent 'Yes' and one for 'No'.
 Includes a Total column summing counts across dates. Map your columns and choose a date header style.
 For .dta files, enumerator labels are applied automatically if available. Use 'enum' for labels or 'enum_lab' for SurveyCTO calculated labels.
 """)
@@ -50,7 +49,10 @@ if uploaded_file is not None:
         st.error(f"Oops, couldn't read the file: {e}")
         st.stop()
 
-    # Handle duplicate columns
+    # Handle MultiIndex and duplicate columns
+    if isinstance(df.columns, pd.MultiIndex):
+        st.warning("MultiIndex columns detected. Flattening to single-level column names.")
+        df.columns = ['_'.join(map(str, col)).strip() for col in df.columns]
     if df.columns.duplicated().any():
         st.warning("Duplicate column names detected. Renaming duplicates to avoid conflicts.")
         new_columns = []
@@ -69,29 +71,29 @@ if uploaded_file is not None:
     # Column mapping
     st.subheader("Map Your Columns")
     col_options = [''] + list(df.columns)
-    consent_col = st.selectbox("Select column for Consent (e.g., 1/0, yes/no)", col_options, index=col_options.index('consent') if 'consent' in col_options else 0)
+    consent_col = st.selectbox("Select column for Consent (e.g., 1/0, yes/no)", col_options, index=0)
     enum_col = st.selectbox("Select column for Enumerator (e.g., enum or enum_lab)", col_options, index=col_options.index('enum') if 'enum' in col_options else 0)
-    village_col = st.selectbox("Select column for Village (optional)", col_options, index=0)
-    fielddate_col = st.selectbox("Select column for Field Date (e.g., int_date)", col_options, index=col_options.index('int_date') if 'int_date' in col_options else 0)
+    grouping_var_col = st.selectbox("Select column for Address/Location (e.g., village, landmark, upazilla, optional)", col_options, index=0)
+    date_col = st.selectbox("Select column for Date (e.g., fielddate, survey_date, collection_date)", col_options, index=col_options.index('fielddate') if 'fielddate' in col_options else 0)
 
-    if not all([consent_col, enum_col, fielddate_col]):
-        st.warning("Please select columns for Consent, Enumerator, and Field Date to proceed.")
+    if not all([consent_col, enum_col, date_col]):
+        st.warning("Please select columns for Consent, Enumerator, and Date to proceed.")
         st.stop()
 
     # Rename columns to standard names
     rename_dict = {
         consent_col: 'consent',
         enum_col: 'enum',
-        fielddate_col: 'fielddate'
+        date_col: 'date'
     }
-    if village_col:
-        rename_dict[village_col] = 'village'
+    if grouping_var_col:
+        rename_dict[grouping_var_col] = 'grouping_var'
     df = df.rename(columns=rename_dict)
 
     # Check required variables
-    required_vars = ['consent', 'enum', 'fielddate']
-    if village_col and 'village' not in df.columns:
-        st.error("Mapped village column not found in data. Skipping.")
+    required_vars = ['consent', 'enum', 'date']
+    if grouping_var_col and 'grouping_var' not in df.columns:
+        st.error("Mapped Address/Location column not found in data. Skipping.")
         st.stop()
     missing_vars = [var for var in required_vars if var not in df.columns]
     if missing_vars:
@@ -99,21 +101,28 @@ if uploaded_file is not None:
         st.stop()
 
     # Drop missing required columns
-    required_cols = ['enum', 'fielddate']
-    if village_col and 'village' in df.columns:
-        required_cols.append('village')
+    required_cols = ['enum', 'date']
+    if grouping_var_col and 'grouping_var' in df.columns:
+        required_cols.append('grouping_var')
     df = df.dropna(subset=required_cols)
 
     if len(df) == 0:
         st.warning("No valid observations after filtering. Nothing to process.")
         st.stop()
 
-    # Ensure enum and village (if present) are strings
+    # Ensure enum and grouping_var (if present) are strings
     def safe_to_string(x):
         try:
-            return str(x).strip() if x is not None else ''
+            if x is None or pd.isna(x):
+                return 'Unknown'
+            if isinstance(x, (list, tuple)):
+                return str(x[0]).strip() if x else 'Unknown'  # Take first item if list/tuple
+            if isinstance(x, dict):
+                return str(list(x.values())[0]).strip() if x else 'Unknown'  # Take first value if dict
+            return str(x).strip()
         except:
-            return ''
+            return 'Unknown'
+
     try:
         df['enum'] = df['enum'].map(safe_to_string)
     except Exception as e:
@@ -123,18 +132,41 @@ if uploaded_file is not None:
         st.write("Unique values in 'enum':")
         st.write(df['enum'].unique()[:10])
         st.stop()
-    if village_col and 'village' in df.columns:
+
+    if grouping_var_col and 'grouping_var' in df.columns:
         try:
-            df['village'] = df['village'].map(safe_to_string)
+            df['grouping_var'] = df['grouping_var'].map(safe_to_string)
+            df['grouping_var'] = df['grouping_var'].fillna('Unknown')  # Handle NaN
+            # Debug grouping_var column
+            st.write("Debug: Unique values in 'grouping_var' column after conversion:")
+            st.write(df['grouping_var'].unique()[:10])
+            if df['grouping_var'].apply(lambda x: isinstance(x, (list, dict, tuple))).any():
+                st.error("Error: 'grouping_var' column contains nested data (lists/dicts) after conversion.")
+                st.write("Sample of 'grouping_var' column:")
+                st.write(df['grouping_var'].head(10))
+                st.stop()
         except Exception as e:
-            st.error(f"Failed to convert 'village' to string: {e}")
-            st.write("First 5 values of 'village' column for debugging:")
-            st.write(df['village'].head())
+            st.error(f"Failed to convert 'grouping_var' to string: {e}")
+            st.write("First 5 values of 'grouping_var' column for debugging:")
+            st.write(df['grouping_var'].head())
             st.stop()
 
-    # Convert fielddate to datetime
-    df['fielddate'] = pd.to_datetime(df['fielddate'], errors='coerce')
-    df = df.dropna(subset=['fielddate'])
+    # Convert date to datetime
+    try:
+        df['date'] = pd.to_datetime(df['date'], errors='coerce')
+        invalid_dates = df['date'].isna().sum()
+        if invalid_dates > 0:
+            st.warning(f"{invalid_dates} rows have invalid dates and will be dropped. Check your date column for non-date values.")
+            st.write("Sample of invalid date values (first 5):")
+            st.write(df[df['date'].isna()][['date']].head())
+        df = df.dropna(subset=['date'])
+    except Exception as e:
+        st.error(f"Failed to convert 'date' to datetime: {e}")
+        st.write("First 5 values of 'date' column for debugging:")
+        st.write(df['date'].head())
+        st.write("Unique values in 'date':")
+        st.write(df['date'].unique()[:10])
+        st.stop()
 
     if len(df) == 0:
         st.warning("No valid dates after conversion. Nothing to process.")
@@ -150,22 +182,37 @@ if uploaded_file is not None:
 
     # Compute daily count
     group_cols = ['enum', 'Consent_Status']
-    if village_col and 'village' in df.columns:
-        group_cols.insert(1, 'village')
-    daily_counts = (
-        df.groupby(group_cols + ['fielddate'])
-          .size()
-          .reset_index(name='daily_count')
-    )
+    if grouping_var_col and 'grouping_var' in df.columns:
+        group_cols.insert(1, 'grouping_var')
+
+    # Validate group_cols
+    missing_cols = [col for col in group_cols if col not in df.columns]
+    if missing_cols:
+        st.error(f"Error: Grouping columns {missing_cols} not found in DataFrame.")
+        st.stop()
+
+    try:
+        daily_counts = (
+            df.groupby(group_cols + ['date'])
+              .size()
+              .reset_index(name='daily_count')
+        )
+    except Exception as e:
+        st.error(f"Error in groupby: {e}")
+        st.write("Debug: DataFrame info:")
+        st.write(df.info())
+        st.write("Debug: Sample data:")
+        st.write(df.head())
+        st.stop()
 
     # Reshape wide
     index_cols = ['enum', 'Consent_Status']
-    if village_col and 'village' in df.columns:
-        index_cols.insert(1, 'village')
+    if grouping_var_col and 'grouping_var' in df.columns:
+        index_cols.insert(1, 'grouping_var')
     reshaped = (
         daily_counts.pivot_table(
             index=index_cols,
-            columns='fielddate',
+            columns='date',
             values='daily_count',
             aggfunc='sum',
             fill_value=0
