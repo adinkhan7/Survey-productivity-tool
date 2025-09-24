@@ -13,169 +13,106 @@ st.set_page_config(
     page_icon="📊"
 )
 
-# Custom CSS for modern minimalistic look
-def load_css(theme):
-    if theme == "Dark":
-        css = """
-        <style>
-        .stApp {
-            background-color: #0e1117;
-            color: #fafafa;
-        }
-        .stTitle {
-            font-family: 'Segoe UI', sans-serif;
-            font-weight: 300;
-            color: #fafafa;
-        }
-        .stMarkdown {
-            font-family: 'Segoe UI', sans-serif;
-            color: #e1e5e9;
-        }
-        .stSelectbox > label, .stTextInput > label, .stFileUploader > label {
-            color: #fafafa;
-            font-weight: 500;
-        }
-        .stDataFrame {
-            background-color: #1e1e1e;
-            color: #fafafa;
-        }
-        .stDataFrame thead tr th {
-            background-color: #2a2a2a;
-            color: #fafafa;
-            border-bottom: 1px solid #444;
-        }
-        .stDataFrame tbody tr td {
-            background-color: #1e1e1e;
-            color: #fafafa;
-            border-bottom: 1px solid #444;
-        }
-        .stDownloadButton > button {
-            background-color: #1f77b4;
-            color: #fafafa;
-            border-radius: 6px;
-            padding: 0.5rem 1rem;
-            font-weight: 500;
-        }
-        .stDownloadButton > button:hover {
-            background-color: #155a8a;
-        }
-        .stWarning > div {
-            background-color: #3d2b1f;
-            color: #f0ad4e;
-        }
-        .stError > div {
-            background-color: #3d1a1a;
-            color: #d9534f;
-        }
-        .stSuccess > div {
-            background-color: #1a3d1a;
-            color: #5cb85c;
-        }
-        hr {
-            border: 1px solid #333;
-        }
-        .stSelectbox [data-baseweb="select"] > div {
-            color: #fafafa !important;
-            background-color: #1e1e1e;
-        }
-        .stSelectbox [data-baseweb="select"] > div > div {
-            opacity: 0.5;
-        }
-        </style>
-        """
-    else:  # Light theme
-        css = """
-        <style>
-        .stApp {
-            background-color: #ffffff;
-            color: #212529;
-        }
-        .stTitle {
-            font-family: 'Segoe UI', sans-serif;
-            font-weight: 300;
-            color: #212529;
-        }
-        .stMarkdown {
-            font-family: 'Segoe UI', sans-serif;
-            color: #495057;
-        }
-        .stSelectbox > label, .stTextInput > label, .stFileUploader > label {
-            color: #212529;
-            font-weight: 500;
-        }
-        .stDataFrame {
-            background-color: #ffffff;
-            color: #212529;
-        }
-        .stDataFrame thead tr th {
-            background-color: #f8f9fa;
-            color: #212529;
-            border-bottom: 1px solid #dee2e6;
-        }
-        .stDataFrame tbody tr td {
-            background-color: #ffffff;
-            color: #212529;
-            border-bottom: 1px solid #dee2e6;
-        }
-        .stDownloadButton > button {
-            background-color: #007bff;
-            color: #ffffff;
-            border-radius: 6px;
-            padding: 0.5rem 1rem;
-            font-weight: 500;
-        }
-        .stDownloadButton > button:hover {
-            background-color: #0056b3;
-        }
-        .stWarning > div {
-            background-color: #fff3cd;
-            color: #856404;
-        }
-        .stError > div {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-        .stSuccess > div {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        hr {
-            border: 1px solid #dee2e6;
-        }
-        .stSelectbox [data-baseweb="select"] > div {
-            color: #212529 !important;
-            background-color: #ffffff;
-        }
-        .stSelectbox [data-baseweb="select"] > div > div {
-            opacity: 0.5;
-        }
-        </style>
-        """
-    st.markdown(css, unsafe_allow_html=True)
+# Custom CSS for AMOLED black theme with depth effect
+st.markdown("""
+<style>
+.stApp {
+    background-color: #000000;
+    color: #ffffff;
+}
+.stTitle {
+    font-family: 'Segoe UI', sans-serif;
+    font-weight: 300;
+    color: #ffffff;
+}
+.stMarkdown {
+    font-family: 'Segoe UI', sans-serif;
+    color: #b0b0b0;
+}
+.stSelectbox > label, .stTextInput > label, .stFileUploader > label {
+    color: #ffffff;
+    font-weight: 500;
+}
+.stDataFrame {
+    background-color: #1a1a1a;
+    color: #ffffff;
+}
+.stDataFrame thead tr th {
+    background-color: #2c2c2c;
+    color: #ffffff;
+    border-bottom: 1px solid #444444;
+}
+.stDataFrame tbody tr td {
+    background-color: #1a1a1a;
+    color: #ffffff;
+    border-bottom: 1px solid #444444;
+}
+.stDownloadButton > button {
+    background-color: #0288d1;
+    color: #ffffff;
+    border-radius: 8px;
+    padding: 0.6rem 1.2rem;
+    font-weight: 500;
+}
+.stDownloadButton > button:hover {
+    background-color: #01579b;
+}
+.stWarning > div {
+    background-color: #4a2e00;
+    color: #ffb300;
+}
+.stError > div {
+    background-color: #5c1c1c;
+    color: #ff6b6b;
+}
+.stSuccess > div {
+    background-color: #1c4a1c;
+    color: #4caf50;
+}
+hr {
+    border: 1px solid #333333;
+}
+.stSelectbox [data-baseweb="select"] > div {
+    color: #ffffff !important;
+    background-color: #1a1a1a;
+}
+.stSelectbox [data-baseweb="select"] > div > div {
+    opacity: 0.6;
+}
+.stSidebar [data-baseweb="accordion"] {
+    background-color: #121212;
+    border: 1px solid #2c2c2c;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    padding: 10px;
+}
+.stSidebar .stSelectbox, .stSidebar .stFileUploader {
+    background-color: #1a1a1a;
+    border-radius: 6px;
+    padding: 8px;
+}
+</style>
+""", unsafe_allow_html=True)
 
-# Sidebar for controls
-st.sidebar.title("Controls")
-theme = st.sidebar.selectbox("Theme", ["Light", "Dark"], index=0)
-load_css(theme)
-
-# File uploader in sidebar
-uploaded_file = st.sidebar.file_uploader("Upload File", type=["dta", "xlsx", "xls"], help="Upload a .dta (Stata) or .xlsx/.xls (Excel) file.")
-
-# Header style in sidebar
-header_style = st.sidebar.selectbox(
-    "Date Header Style",
-    options=["Pretty (e.g., 10 Sep 2025)", "Safe (e.g., d_10Sep2025)", 
-             "Compact (e.g., 10Sep2025)", "ISO (e.g., 2025-09-10)"],
-    index=0,
-    help="Select how date columns will appear in the output Excel file."
-)
+# Sidebar for controls with depth effect
+with st.sidebar:
+    st.title("Controls")
+    with st.expander("Configuration", expanded=True):
+        # File uploader in sidebar
+        uploaded_file = st.file_uploader("Upload File", type=["dta", "xlsx", "xls"], help="Upload a .dta (Stata) or .xlsx/.xls (Excel) file.")
+        
+        # Header style in sidebar
+        header_style = st.selectbox(
+            "Date Header Style",
+            options=["Pretty (e.g., 10 Sep 2025)", "Safe (e.g., d_10Sep2025)", 
+                     "Compact (e.g., 10Sep2025)", "ISO (e.g., 2025-09-10)"],
+            index=0,
+            help="Select how date columns will appear in the output Excel file."
+        )
 
 # Main content area
-col1, col2 = st.columns([2, 1])
-with col1:
-    st.title("Enumerator Daily Survey Productivity Tool")
-with col2:
-    st.markdown("**Upload your .dta or .xlsx file to generate daily counts by enumerator (and optional grouping like village).**")
+st.title("Enumerator Daily Survey Productivity Tool")
+st.markdown("**Upload your .dta or .xlsx file to generate daily counts by enumerator (and optional grouping like village).**")
 
 # Process file if uploaded
 if uploaded_file is not None:
@@ -216,32 +153,32 @@ if uploaded_file is not None:
         df.columns = new_columns
 
     # Column mappings in sidebar
-    st.sidebar.subheader("Column Mapping")
-    col_options = ['Select a column'] + list(df.columns)
-    consent_col = st.sidebar.selectbox(
-        "Consent Column (optional)",
-        col_options,
-        index=0,
-        help="Select column with consent status (e.g., 'yes/no', '1/0')."
-    )
-    enum_col = st.sidebar.selectbox(
-        "Enumerator Column",
-        col_options,
-        index=col_options.index('enum') if 'enum' in col_options else 0,
-        help="Select column with enumerator IDs or names."
-    )
-    grouping_var_col = st.sidebar.selectbox(
-        "Grouping Column (optional)",
-        col_options,
-        index=0,
-        help="Select column for grouping (e.g., 'village', 'upazilla')."
-    )
-    date_col = st.sidebar.selectbox(
-        "Date Column",
-        col_options,
-        index=col_options.index('starttime') if 'starttime' in col_options else 0,
-        help="Select column with survey dates."
-    )
+    with st.sidebar.expander("Column Mapping", expanded=True):
+        col_options = ['Select a column'] + list(df.columns)
+        consent_col = st.selectbox(
+            "Consent Column (optional)",
+            col_options,
+            index=0,
+            help="Select column with consent status (e.g., 'yes/no', '1/0')."
+        )
+        enum_col = st.selectbox(
+            "Enumerator Column",
+            col_options,
+            index=col_options.index('enum') if 'enum' in col_options else 0,
+            help="Select column with enumerator IDs or names."
+        )
+        grouping_var_col = st.selectbox(
+            "Grouping Column (optional)",
+            col_options,
+            index=0,
+            help="Select column for grouping (e.g., 'village', 'upazilla')."
+        )
+        date_col = st.selectbox(
+            "Date Column",
+            col_options,
+            index=col_options.index('starttime') if 'starttime' in col_options else 0,
+            help="Select column with survey dates."
+        )
 
     if not all([enum_col != 'Select a column', date_col != 'Select a column']):
         st.sidebar.warning("Select Enumerator and Date columns.")
