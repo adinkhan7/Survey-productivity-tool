@@ -80,14 +80,14 @@ hr {
     opacity: 0.6;
 }
 .stSidebar [data-baseweb="accordion"] {
-    background-color: #121212;
+    background-color: #1a1a1a;
     border: 1px solid #2c2c2c;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
     padding: 10px;
 }
 .stSidebar .stSelectbox, .stSidebar .stFileUploader {
-    background-color: #1a1a1a;
+    background-color: #000000;
     border-radius: 6px;
     padding: 8px;
 }
