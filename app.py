@@ -13,209 +13,209 @@ st.set_page_config(
     page_icon="📊"
 )
 
-# Custom CSS for Material UI-inspired look with dark blue accents
+# Custom CSS for a cleaner, softer look with Material UI inspiration
 def load_css(theme):
     if theme == "Dark":
         css = """
         <style>
         .stApp {
-            background-color: #0e1117;
-            color: #fafafa;
+            background-color: #1a1d2e;
+            color: #e0e7ff;
         }
         .stSidebar {
-            background-color: #1a1d2e;
-            padding: 1rem;
+            background-color: #252a41;
+            padding: 1.5rem;
         }
         .stTitle {
             font-family: 'Roboto', 'Segoe UI', sans-serif;
             font-weight: 500;
             font-size: 2.2rem;
-            color: #fafafa;
+            color: #e0e7ff;
         }
         .stMarkdown {
             font-family: 'Roboto', 'Segoe UI', sans-serif;
-            color: #e1e5e9;
+            color: #a3bffa;
         }
         .stSelectbox > label, .stTextInput > label, .stFileUploader > label {
-            color: #fafafa;
+            color: #e0e7ff;
             font-weight: 500;
             font-family: 'Roboto', 'Segoe UI', sans-serif;
         }
         .stSelectbox > div > div > div {
-            color: #fafafa !important;
-            background-color: #2a2a2a;
-            border-radius: 4px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
-            transition: box-shadow 0.2s ease-in-out;
+            color: #e0e7ff !important;
+            background-color: #2d314d;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: box-shadow 0.2s ease;
         }
         .stSelectbox > div > div > div:hover {
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
         .stFileUploader > div > div {
-            background-color: #2a2a2a;
-            border-radius: 4px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
-            transition: box-shadow 0.2s ease-in-out;
+            background-color: #2d314d;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: box-shadow 0.2s ease;
         }
         .stFileUploader > div > div:hover {
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
         .stDataFrame {
-            background-color: #1e1e1e;
-            color: #fafafa;
-            border-radius: 4px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+            background-color: #252a41;
+            color: #e0e7ff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
         .stDataFrame thead tr th {
-            background-color: #2a2a2a;
-            color: #fafafa;
-            border-bottom: 1px solid #444;
+            background-color: #2d314d;
+            color: #e0e7ff;
+            border-bottom: 1px solid #3a4060;
         }
         .stDataFrame tbody tr td {
-            background-color: #1e1e1e;
-            color: #fafafa;
-            border-bottom: 1px solid #444;
+            background-color: #252a41;
+            color: #e0e7ff;
+            border-bottom: 1px solid #3a4060;
         }
         .stDownloadButton > button {
-            background-color: #0E3B5E;
-            color: #fafafa;
-            border-radius: 4px;
+            background-color: #1E90FF;
+            color: #ffffff;
+            border-radius: 8px;
             padding: 0.5rem 1rem;
             font-weight: 500;
             font-family: 'Roboto', 'Segoe UI', sans-serif;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
-            transition: box-shadow 0.2s ease-in-out;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: box-shadow 0.2s ease, background-color 0.2s ease;
         }
         .stDownloadButton > button:hover {
-            background-color: #092b44;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);
+            background-color: #187BCD;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
         .stWarning > div {
             background-color: #3d2b1f;
             color: #f0ad4e;
-            border-radius: 4px;
+            border-radius: 8px;
         }
         .stError > div {
             background-color: #3d1a1a;
             color: #d9534f;
-            border-radius: 4px;
+            border-radius: 8px;
         }
         .stSuccess > div {
             background-color: #1a3d1a;
             color: #5cb85c;
-            border-radius: 4px;
+            border-radius: 8px;
         }
         hr {
-            border: 1px solid #444;
-            margin: 1rem 0;
+            border: 1px solid #3a4060;
+            margin: 1.5rem 0;
         }
         .hint-text {
             font-size: 0.8rem;
-            color: #a0a0a0;
-            margin-bottom: 0.2rem;
+            color: #a3bffa;
+            margin-bottom: 0.5rem;
             font-family: 'Roboto', 'Segoe UI', sans-serif;
         }
         </style>
         """
-    else:  # Light theme with white sidebar and dark blue accents
+    else:  # Light theme with white sidebar and soft blue accents
         css = """
         <style>
         .stApp {
-            background-color: #f9fafb;
-            color: #1a1a1a;
+            background-color: #f5f7fa;
+            color: #2d3748;
         }
         .stSidebar {
             background-color: #ffffff;
-            padding: 1rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
         .stTitle {
             font-family: 'Roboto', 'Segoe UI', sans-serif;
             font-weight: 500;
             font-size: 2.2rem;
-            color: #0E3B5E;
+            color: #2d3748;
         }
         .stMarkdown {
             font-family: 'Roboto', 'Segoe UI', sans-serif;
-            color: #333333;
+            color: #4a5568;
         }
         .stSelectbox > label, .stTextInput > label, .stFileUploader > label {
-            color: #1a1a1a;
+            color: #2d3748;
             font-weight: 500;
             font-family: 'Roboto', 'Segoe UI', sans-serif;
         }
         .stSelectbox > div > div > div {
-            color: #1a1a1a !important;
+            color: #2d3748 !important;
             background-color: #ffffff;
-            border-radius: 4px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
-            transition: box-shadow 0.2s ease-in-out;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: box-shadow 0.2s ease;
         }
         .stSelectbox > div > div > div:hover {
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
         .stFileUploader > div > div {
             background-color: #ffffff;
-            border-radius: 4px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
-            transition: box-shadow 0.2s ease-in-out;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: box-shadow 0.2s ease;
         }
         .stFileUploader > div > div:hover {
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
         .stDataFrame {
             background-color: #ffffff;
-            color: #1a1a1a;
-            border-radius: 4px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+            color: #2d3748;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
         .stDataFrame thead tr th {
-            background-color: #e9ecef;
-            color: #1a1a1a;
-            border-bottom: 1px solid #ced4da;
+            background-color: #edf2f7;
+            color: #2d3748;
+            border-bottom: 1px solid #e2e8f0;
         }
         .stDataFrame tbody tr td {
             background-color: #ffffff;
-            color: #1a1a1a;
-            border-bottom: 1px solid #ced4da;
+            color: #2d3748;
+            border-bottom: 1px solid #e2e8f0;
         }
         .stDownloadButton > button {
-            background-color: #0E3B5E;
+            background-color: #1E90FF;
             color: #ffffff;
-            border-radius: 4px;
+            border-radius: 8px;
             padding: 0.5rem 1rem;
             font-weight: 500;
             font-family: 'Roboto', 'Segoe UI', sans-serif;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
-            transition: box-shadow 0.2s ease-in-out;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: box-shadow 0.2s ease, background-color 0.2s ease;
         }
         .stDownloadButton > button:hover {
-            background-color: #092b44;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);
+            background-color: #187BCD;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
         .stWarning > div {
-            background-color: #fff3cd;
-            color: #664d03;
-            border-radius: 4px;
+            background-color: #fefcbf;
+            color: #744210;
+            border-radius: 8px;
         }
         .stError > div {
-            background-color: #f8d7da;
-            color: #58151c;
-            border-radius: 4px;
+            background-color: #fed7d7;
+            color: #742a2a;
+            border-radius: 8px;
         }
         .stSuccess > div {
-            background-color: #d1fae5;
-            color: #0f5132;
-            border-radius: 4px;
+            background-color: #c6f6d5;
+            color: #22543d;
+            border-radius: 8px;
         }
         hr {
-            border: 1px solid #ced4da;
-            margin: 1rem 0;
+            border: 1px solid #e2e8f0;
+            margin: 1.5rem 0;
         }
         .hint-text {
             font-size: 0.8rem;
-            color: #6b7280;
-            margin-bottom: 0.2rem;
+            color: #718096;
+            margin-bottom: 0.5rem;
             font-family: 'Roboto', 'Segoe UI', sans-serif;
         }
         </style>
@@ -224,12 +224,11 @@ def load_css(theme):
 
 # Sidebar for controls
 st.sidebar.title("Controls")
-st.sidebar.markdown('<hr>', unsafe_allow_html=True)
 theme = st.sidebar.selectbox("Theme", ["Light", "Dark"], index=0)
-load_css(theme)
+st.sidebar.markdown('<hr>', unsafe_allow_html=True)
 
 # File uploader in sidebar
-uploaded_file = st.sidebar.file_uploader("Upload File", type=["dta", "xlsx", "xls"], help="Upload a .dta (Stata) or .xlsx/.xls (Excel) file.")
+uploaded_file = st.sidebar.file_uploader("Upload File", type=["dta", "xlsx", "xls"])
 st.sidebar.markdown('<hr>', unsafe_allow_html=True)
 
 # Header style in sidebar
@@ -237,8 +236,7 @@ header_style = st.sidebar.selectbox(
     "Date Header Style",
     options=["Pretty (e.g., 10 Sep 2025)", "Safe (e.g., d_10Sep2025)", 
              "Compact (e.g., 10Sep2025)", "ISO (e.g., 2025-09-10)"],
-    index=0,
-    help="Select how date columns will appear in the output Excel file."
+    index=0
 )
 st.sidebar.markdown('<hr>', unsafe_allow_html=True)
 
@@ -286,38 +284,33 @@ if uploaded_file is not None:
 
     # Column mappings in sidebar
     st.sidebar.subheader("Column Mapping")
-    col_options = ['Select a column'] + list(df.columns)
     
     st.sidebar.markdown('<span class="hint-text">Consent</span>', unsafe_allow_html=True)
     consent_col = st.sidebar.selectbox(
         "Consent Column (optional)",
-        col_options,
-        index=0,
-        help="Select column with consent status (e.g., 'yes/no', '1/0')."
+        ['Select a column'] + list(df.columns),
+        index=0
     )
     
     st.sidebar.markdown('<span class="hint-text">Enumerator</span>', unsafe_allow_html=True)
     enum_col = st.sidebar.selectbox(
         "Enumerator Column",
-        col_options,
-        index=col_options.index('enum') if 'enum' in col_options else 0,
-        help="Select column with enumerator IDs or names."
+        ['Select a column'] + list(df.columns),
+        index=['Select a column'] + list(df.columns).index('enum') if 'enum' in df.columns else 0
     )
     
     st.sidebar.markdown('<span class="hint-text">Grouping</span>', unsafe_allow_html=True)
     grouping_var_col = st.sidebar.selectbox(
         "Grouping Column (optional)",
-        col_options,
-        index=0,
-        help="Select column for grouping (e.g., 'village', 'upazilla')."
+        ['Select a column'] + list(df.columns),
+        index=0
     )
     
     st.sidebar.markdown('<span class="hint-text">Date</span>', unsafe_allow_html=True)
     date_col = st.sidebar.selectbox(
         "Date Column",
-        col_options,
-        index=col_options.index('starttime') if 'starttime' in col_options else 0,
-        help="Select column with survey dates."
+        ['Select a column'] + list(df.columns),
+        index=['Select a column'] + list(df.columns).index('starttime') if 'starttime' in df.columns else 0
     )
 
     if not all([enum_col != 'Select a column', date_col != 'Select a column']):
