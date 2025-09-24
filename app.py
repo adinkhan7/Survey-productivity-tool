@@ -12,9 +12,6 @@ st.markdown("""
 Upload your .dta or .xlsx file to generate a daily survey count sheet by enumerator and an optional grouping variable (e.g., village, landmark, upazilla).
 If a consent column is selected, counts are split into two rows per enumerator (and grouping variable, if selected): one for consent 'Yes' and one for 'No'.
 If no consent column is selected, counts are provided per enumerator (and grouping variable, if selected) without splitting by consent.
-Includes a Total column summing counts across dates. Map your columns and choose a date header style.
-For .dta files, enumerator labels are applied automatically if available. Use 'enum' for labels or 'enum_lab' for SurveyCTO calculated labels.
-If a 'starttime' column is present, the date will be derived from it by default, similar to Stata's 'gen fielddate = dofc(starttime)'.
 """)
 
 # File uploader
