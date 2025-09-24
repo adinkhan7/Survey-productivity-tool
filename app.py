@@ -76,7 +76,7 @@ if uploaded_file is not None:
     consent_col = st.selectbox(
         "Select column for Consent (e.g., 1/0, yes/no, optional)",
         col_options,
-        index=col_options.index('consent') if 'consent' in col_options else 0
+        index= 0 # always default to the empty option
     )
     enum_col = st.selectbox(
         "Select column for Enumerator (e.g., enum or enum_lab)",
