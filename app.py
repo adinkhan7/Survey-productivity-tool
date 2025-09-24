@@ -13,7 +13,7 @@ st.set_page_config(
     page_icon="📊"
 )
 
-# Custom CSS for modern minimalistic look inspired by Material You and iOS 26
+# Custom CSS for modern minimalistic look with improved light theme contrast
 def load_css(theme):
     if theme == "Dark":
         css = """
@@ -23,23 +23,25 @@ def load_css(theme):
             color: #fafafa;
         }
         .stTitle {
-            font-family: 'SF Pro Display', 'Segoe UI', sans-serif;
-            font-weight: 400;
+            font-family: 'Segoe UI', sans-serif;
+            font-weight: 300;
             color: #fafafa;
-            line-height: 1.2;
         }
         .stMarkdown {
-            font-family: 'SF Pro Text', 'Segoe UI', sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             color: #e1e5e9;
         }
         .stSelectbox > label, .stTextInput > label, .stFileUploader > label {
             color: #fafafa;
             font-weight: 500;
         }
+        .stSelectbox > div > div > div {
+            color: #fafafa !important;
+            background-color: #1e1e1e;
+        }
         .stDataFrame {
             background-color: #1e1e1e;
             color: #fafafa;
-            border-radius: 12px;
         }
         .stDataFrame thead tr th {
             background-color: #2a2a2a;
@@ -54,10 +56,9 @@ def load_css(theme):
         .stDownloadButton > button {
             background-color: #1f77b4;
             color: #fafafa;
-            border-radius: 12px;
-            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
             font-weight: 500;
-            transition: background-color 0.3s ease;
         }
         .stDownloadButton > button:hover {
             background-color: #155a8a;
@@ -65,117 +66,92 @@ def load_css(theme):
         .stWarning > div {
             background-color: #3d2b1f;
             color: #f0ad4e;
-            border-radius: 8px;
         }
         .stError > div {
             background-color: #3d1a1a;
             color: #d9534f;
-            border-radius: 8px;
         }
         .stSuccess > div {
             background-color: #1a3d1a;
             color: #5cb85c;
-            border-radius: 8px;
         }
         hr {
             border: 1px solid #333;
         }
-        .stSelectbox [data-baseweb="select"] > div {
-            color: #fafafa !important;
-            background-color: #1e1e1e;
-            border-radius: 8px;
-        }
-        .stSelectbox [data-baseweb="select"] > div > div {
-            opacity: 0.7;
-        }
-        .stSidebar {
-            background-color: #1e1e1e;
-            padding: 1rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        .hint-text {
+            font-size: 0.8rem;
+            color: #a0a0a0;
+            margin-bottom: 0.2rem;
         }
         </style>
         """
-    else:  # Light theme
+    else:  # Light theme with improved contrast
         css = """
         <style>
         .stApp {
-            background-color: #f5f5f5;
-            color: #1c2526;
+            background-color: #f9fafb;
+            color: #1a1a1a;
         }
         .stTitle {
-            font-family: 'SF Pro Display', 'Segoe UI', sans-serif;
-            font-weight: 400;
-            color: #1c2526;
-            line-height: 1.2;
+            font-family: 'Segoe UI', sans-serif;
+            font-weight: 300;
+            color: #1a1a1a;
         }
         .stMarkdown {
-            font-family: 'SF Pro Text', 'Segoe UI', sans-serif;
-            color: #3c4b4e;
+            font-family: 'Segoe UI', sans-serif;
+            color: #333333;
         }
         .stSelectbox > label, .stTextInput > label, .stFileUploader > label {
-            color: #1c2526;
+            color: #1a1a1a;
             font-weight: 500;
+        }
+        .stSelectbox > div > div > div {
+            color: #1a1a1a !important;
+            background-color: #ffffff;
         }
         .stDataFrame {
             background-color: #ffffff;
-            color: #1c2526;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            color: #1a1a1a;
         }
         .stDataFrame thead tr th {
-            background-color: #f8f9fa;
-            color: #1c2526;
-            border-bottom: 1px solid #d1d5db;
+            background-color: #e9ecef;
+            color: #1a1a1a;
+            border-bottom: 1px solid #ced4da;
         }
         .stDataFrame tbody tr td {
             background-color: #ffffff;
-            color: #1c2526;
-            border-bottom: 1px solid #d1d5db;
+            color: #1a1a1a;
+            border-bottom: 1px solid #ced4da;
         }
         .stDownloadButton > button {
-            background-color: #007bff;
+            background-color: #0066cc;
             color: #ffffff;
-            border-radius: 12px;
-            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
             font-weight: 500;
-            transition: background-color 0.3s ease;
         }
         .stDownloadButton > button:hover {
-            background-color: #0056b3;
+            background-color: #004d99;
         }
         .stWarning > div {
-            background-color: #fef7e0;
-            color: #854d0e;
-            border-radius: 8px;
+            background-color: #fff3cd;
+            color: #664d03;
         }
         .stError > div {
-            background-color: #fee2e2;
-            color: #991b1b;
-            border-radius: 8px;
+            background-color: #f8d7da;
+            color: #58151c;
         }
         .stSuccess > div {
-            background-color: #dcfce7;
-            color: #166534;
-            border-radius: 8px;
+            background-color: #d1fae5;
+            color: #0f5132;
         }
         hr {
-            border: 1px solid #d1d5db;
+            border: 1px solid #ced4da;
         }
-        .stSelectbox [data-baseweb="select"] > div {
-            color: #1c2526 !important;
-            background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-        .stSelectbox [data-baseweb="select"] > div > div {
-            opacity: 0.7;
-        }
-        .stSidebar {
-            background-color: #ffffff;
-            padding: 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        .hint-text {
+            font-size: 0.8rem;
+            color: #6b7280;
+            margin-bottom: 0.2rem;
         }
         </style>
         """
@@ -199,8 +175,11 @@ header_style = st.sidebar.selectbox(
 )
 
 # Main content area
-st.title("Enumerator Daily Survey Productivity Tool")
-st.markdown("**Upload your .dta or .xlsx file to generate daily counts by enumerator (and optional grouping like village).**")
+col1, col2 = st.columns([2, 1])
+with col1:
+    st.title("Enumerator Daily Survey Productivity Tool")
+with col2:
+    st.markdown("**Upload your .dta or .xlsx file to generate daily counts by enumerator (and optional grouping like village).**")
 
 # Process file if uploaded
 if uploaded_file is not None:
@@ -243,24 +222,32 @@ if uploaded_file is not None:
     # Column mappings in sidebar
     st.sidebar.subheader("Column Mapping")
     col_options = ['Select a column'] + list(df.columns)
+    
+    st.sidebar.markdown('<span class="hint-text">Consent</span>', unsafe_allow_html=True)
     consent_col = st.sidebar.selectbox(
         "Consent Column (optional)",
         col_options,
         index=0,
         help="Select column with consent status (e.g., 'yes/no', '1/0')."
     )
+    
+    st.sidebar.markdown('<span class="hint-text">Enumerator</span>', unsafe_allow_html=True)
     enum_col = st.sidebar.selectbox(
         "Enumerator Column",
         col_options,
         index=col_options.index('enum') if 'enum' in col_options else 0,
         help="Select column with enumerator IDs or names."
     )
+    
+    st.sidebar.markdown('<span class="hint-text">Grouping</span>', unsafe_allow_html=True)
     grouping_var_col = st.sidebar.selectbox(
         "Grouping Column (optional)",
         col_options,
         index=0,
         help="Select column for grouping (e.g., 'village', 'upazilla')."
     )
+    
+    st.sidebar.markdown('<span class="hint-text">Date</span>', unsafe_allow_html=True)
     date_col = st.sidebar.selectbox(
         "Date Column",
         col_options,
