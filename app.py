@@ -13,7 +13,7 @@ st.set_page_config(
     page_icon="📊"
 )
 
-# Custom CSS for modern minimalistic look with improved light theme contrast
+# Custom CSS for modern look with dark blue accents
 def load_css(theme):
     if theme == "Dark":
         css = """
@@ -24,7 +24,8 @@ def load_css(theme):
         }
         .stTitle {
             font-family: 'Segoe UI', sans-serif;
-            font-weight: 300;
+            font-weight: 600;
+            font-size: 2.2rem;
             color: #fafafa;
         }
         .stMarkdown {
@@ -54,14 +55,14 @@ def load_css(theme):
             border-bottom: 1px solid #444;
         }
         .stDownloadButton > button {
-            background-color: #1f77b4;
+            background-color: #0E3B5E;
             color: #fafafa;
             border-radius: 6px;
             padding: 0.5rem 1rem;
             font-weight: 500;
         }
         .stDownloadButton > button:hover {
-            background-color: #155a8a;
+            background-color: #092b44;
         }
         .stWarning > div {
             background-color: #3d2b1f;
@@ -85,7 +86,7 @@ def load_css(theme):
         }
         </style>
         """
-    else:  # Light theme with improved contrast
+    else:  # Light theme with dark blue accents
         css = """
         <style>
         .stApp {
@@ -94,8 +95,9 @@ def load_css(theme):
         }
         .stTitle {
             font-family: 'Segoe UI', sans-serif;
-            font-weight: 300;
-            color: #1a1a1a;
+            font-weight: 600;
+            font-size: 2.2rem;
+            color: #0E3B5E;
         }
         .stMarkdown {
             font-family: 'Segoe UI', sans-serif;
@@ -124,14 +126,14 @@ def load_css(theme):
             border-bottom: 1px solid #ced4da;
         }
         .stDownloadButton > button {
-            background-color: #0066cc;
+            background-color: #0E3B5E;
             color: #ffffff;
             border-radius: 6px;
             padding: 0.5rem 1rem;
             font-weight: 500;
         }
         .stDownloadButton > button:hover {
-            background-color: #004d99;
+            background-color: #092b44;
         }
         .stWarning > div {
             background-color: #fff3cd;
@@ -175,11 +177,8 @@ header_style = st.sidebar.selectbox(
 )
 
 # Main content area
-col1, col2 = st.columns([2, 1])
-with col1:
-    st.title("Enumerator Daily Survey Productivity Tool")
-with col2:
-    st.markdown("**Upload your .dta or .xlsx file to generate daily counts by enumerator (and optional grouping like village).**")
+st.title("Enumerator Daily Survey Productivity Tool")
+st.markdown("Upload your .dta or .xlsx file to generate daily counts by enumerator (and optional grouping like village).")
 
 # Process file if uploaded
 if uploaded_file is not None:
