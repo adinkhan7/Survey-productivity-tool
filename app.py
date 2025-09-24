@@ -31,7 +31,7 @@ st.markdown("""
 }
 .stSelectbox > label, .stTextInput > label, .stFileUploader > label {
     color: #ffffff;
-    font-weight: 500;
+    font-weight: 600;
 }
 .stDataFrame {
     background-color: #1a1a1a;
@@ -80,14 +80,14 @@ hr {
     opacity: 0.6;
 }
 .stSidebar [data-baseweb="accordion"] {
-    background-color: #1a1a1a;
+    background-color: #000000;
     border: 1px solid #2c2c2c;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
     padding: 10px;
 }
 .stSidebar .stSelectbox, .stSidebar .stFileUploader {
-    background-color: #000000;
+    background-color: #121212;
     border-radius: 6px;
     padding: 8px;
 }
@@ -167,8 +167,8 @@ if uploaded_file is not None:
             index=col_options.index('enum') if 'enum' in col_options else 0,
             help="Select column with enumerator IDs or names."
         )
-        grouping_var_col = st.selectbox(
-            "Grouping Column (optional)",
+        location_col = st.selectbox(
+            "Location (optional)",
             col_options,
             index=0,
             help="Select column for grouping (e.g., 'village', 'upazilla')."
@@ -188,8 +188,8 @@ if uploaded_file is not None:
     rename_dict = {enum_col: 'enum'}
     if consent_col != 'Select a column':
         rename_dict[consent_col] = 'consent'
-    if grouping_var_col != 'Select a column':
-        rename_dict[grouping_var_col] = 'grouping_var'
+    if location_col != 'Select a column':
+        rename_dict[location_col] = 'location'
     df = df.rename(columns=rename_dict)
 
     # Date handling
@@ -218,8 +218,8 @@ if uploaded_file is not None:
     required_vars = ['enum', 'date']
     if consent_col != 'Select a column':
         required_vars.append('consent')
-    if grouping_var_col != 'Select a column' and 'grouping_var' not in df.columns:
-        st.sidebar.error("Grouping column missing.")
+    if location_col != 'Select a column' and 'location' not in df.columns:
+        st.sidebar.error("Location column missing.")
         st.stop()
     missing_vars = [var for var in required_vars if var not in df.columns]
     if missing_vars:
@@ -229,8 +229,8 @@ if uploaded_file is not None:
     required_cols = ['enum', 'date']
     if consent_col != 'Select a column':
         required_cols.append('consent')
-    if grouping_var_col != 'Select a column' and 'grouping_var' in df.columns:
-        required_cols.append('grouping_var')
+    if location_col != 'Select a column' and 'location' in df.columns:
+        required_cols.append('location')
     df = df.dropna(subset=required_cols)
 
     if len(df) == 0:
@@ -258,17 +258,17 @@ if uploaded_file is not None:
         st.sidebar.error(f"Enum conversion: {e}")
         st.stop()
 
-    if grouping_var_col != 'Select a column' and 'grouping_var' in df.columns:
+    if location_col != 'Select a column' and 'location' in df.columns:
         try:
-            if df['grouping_var'].dtype.name == 'category':
-                df['grouping_var'] = df['grouping_var'].astype(str).replace('nan', 'Unknown')
-            df['grouping_var'] = df['grouping_var'].map(safe_to_string)
-            df['grouping_var'] = df['grouping_var'].fillna('Unknown')
-            if df['grouping_var'].apply(lambda x: isinstance(x, (list, dict, tuple))).any():
-                st.sidebar.error("Nested data in grouping.")
+            if df['location'].dtype.name == 'category':
+                df['location'] = df['location'].astype(str).replace('nan', 'Unknown')
+            df['location'] = df['location'].map(safe_to_string)
+            df['location'] = df['location'].fillna('Unknown')
+            if df['location'].apply(lambda x: isinstance(x, (list, dict, tuple))).any():
+                st.sidebar.error("Nested data in location.")
                 st.stop()
         except Exception as e:
-            st.sidebar.error(f"Grouping conversion: {e}")
+            st.sidebar.error(f"Location conversion: {e}")
             st.stop()
 
     df['date'] = pd.to_datetime(df['date'], errors='coerce')
@@ -291,8 +291,8 @@ if uploaded_file is not None:
     group_cols = ['enum']
     if consent_col != 'Select a column':
         group_cols.append('Consent_Status')
-    if grouping_var_col != 'Select a column' and 'grouping_var' in df.columns:
-        group_cols.insert(1, 'grouping_var')
+    if location_col != 'Select a column' and 'location' in df.columns:
+        group_cols.insert(1, 'location')
 
     missing_cols = [col for col in group_cols if col not in df.columns]
     if missing_cols:
@@ -313,8 +313,8 @@ if uploaded_file is not None:
     index_cols = ['enum']
     if consent_col != 'Select a column':
         index_cols.append('Consent_Status')
-    if grouping_var_col != 'Select a column' and 'grouping_var' in df.columns:
-        index_cols.insert(1, 'grouping_var')
+    if location_col != 'Select a column' and 'location' in df.columns:
+        index_cols.insert(1, 'location')
     reshaped = (
         daily_counts.pivot_table(
             index=index_cols,
