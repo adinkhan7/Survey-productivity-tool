@@ -4,6 +4,7 @@ import pyreadstat
 import io
 import tempfile
 import os
+from datetime import datetime
 
 # Page config
 st.set_page_config(
@@ -12,14 +13,14 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Custom CSS for minimalist modern styling
+# Custom CSS for minimalist modern styling with improved visibility
 st.markdown(
     """
     <style>
     /* Reset and base styles */
     .stApp {
-        background-color: #f8fafc;
-        color: #1e293b;
+        background-color: #f9fafb;
+        color: #111827;
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         line-height: 1.5;
     }
@@ -31,41 +32,42 @@ st.markdown(
         z-index: 1000;
         background-color: #ffffff;
         padding: 1.5rem 2rem;
-        border-bottom: 1px solid #e2e8f0;
+        border-bottom: 1px solid #e5e7eb;
         margin-bottom: 2rem;
     }
     .app-header h1 {
         font-size: 1.75rem;
         font-weight: 600;
-        color: #0f172a;
+        color: #111827;
         margin-bottom: 0.5rem;
     }
     .app-header p {
         font-size: 1rem;
-        color: #64748b;
+        color: #4b5563;
         max-width: 600px;
     }
 
     /* File uploader */
     div[data-testid="stFileUploaderDropzone"] {
         background-color: #ffffff;
-        border: 1px solid #e2e8f0;
+        border: 1px solid #d1d5db;
         border-radius: 8px;
         padding: 1.5rem;
         transition: all 0.2s ease;
     }
     div[data-testid="stFileUploaderDropzone"]:hover {
         border-color: #3b82f6;
-        background-color: #f8fafc;
+        background-color: #f9fafb;
     }
 
     /* Select boxes */
     div[data-baseweb="select"] > div {
         background-color: #ffffff;
-        border: 1px solid #e2e8f0;
+        border: 1px solid #d1d5db;
         border-radius: 8px;
         padding: 0.5rem;
         font-size: 0.875rem;
+        color: #111827;
     }
     div[data-baseweb="select"]:hover > div {
         border-color: #3b82f6;
@@ -91,6 +93,15 @@ st.markdown(
         border-radius: 8px;
         padding: 1rem;
         margin-bottom: 1rem;
+        color: #111827;
+    }
+
+    /* DataFrame */
+    .stDataFrame {
+        background-color: #ffffff;
+        color: #111827;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
     }
     </style>
     """,
@@ -192,5 +203,74 @@ with st.container():
                 index=col_options.index('starttime') if 'starttime' in col_options else (col_options.index('fielddate') if 'fielddate' in col_options else 0),
                 help="Select column with survey dates"
             )
+
+        # Process data if required columns are selected
+        if enum_col and date_col:
+            try:
+                # Copy dataframe
+                df_processed = df.copy()
+
+                # Handle consent
+                if consent_col:
+                    df_processed = df_processed[df_processed[consent_col].isin([1, 'yes', 'Yes', 'YES', True])]
+
+                # Convert date column to datetime
+                df_processed[date_col] = pd.to_datetime(df_processed[date_col], errors='coerce')
+                
+                # Create pivot table
+                if grouping_var_col:
+                    pivot = pd.pivot_table(
+                        df_processed,
+                        index=[enum_col, grouping_var_col],
+                        columns=date_col,
+                        aggfunc='size',
+                        fill_value=0
+                    )
+                else:
+                    pivot = pd.pivot_table(
+                        df_processed,
+                        index=enum_col,
+                        columns=date_col,
+                        aggfunc='size',
+                        fill_value=0
+                    )
+
+                # Format column headers based on style
+                date_format_map = {
+                    "Pretty (10 Sep 2025)": "%d %b %Y",
+                    "Safe (d_10Sep2025)": "d_%d%b%Y",
+                    "Compact (10Sep2025)": "%d%b%Y",
+                    "ISO (2025-09-10)": "%Y-%m-%d"
+                }
+                date_format = date_format_map[header_style]
+                pivot.columns = [col.strftime(date_format) for col in pivot.columns]
+
+                # Reset index for cleaner display
+                pivot = pivot.reset_index()
+                
+                # Add total column
+                pivot['Total'] = pivot.iloc[:, 1:].sum(axis=1)
+
+                # Display preview
+                st.subheader("Preview")
+                st.dataframe(pivot, use_container_width=True)
+
+                # Download button
+                output = io.BytesIO()
+                with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+                    pivot.to_excel(writer, index=False, sheet_name='Survey_Counts')
+                output.seek(0)
+                
+                st.download_button(
+                    label="Download Excel",
+                    data=output,
+                    file_name=f"survey_counts_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+
+            except Exception as e:
+                st.error(f"Error processing data: {e}")
+        else:
+            st.info("Please select at least Enumerator and Date columns to generate the report.")
     else:
         st.info("Upload a file to begin analyzing survey data.")
