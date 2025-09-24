@@ -287,7 +287,7 @@ if uploaded_file is not None:
     
     st.sidebar.markdown('<span class="hint-text">Consent</span>', unsafe_allow_html=True)
     consent_col = st.sidebar.selectbox(
-        "Consent Column (optional)",
+        "Column (optional)",
         ['Select a column'] + list(df.columns),
         index=0
     )
@@ -296,7 +296,7 @@ if uploaded_file is not None:
     enum_col = st.sidebar.selectbox(
         "Enumerator Column",
         ['Select a column'] + list(df.columns),
-        index=['Select a column'] + list(df.columns).index('enum') if 'enum' in df.columns else 0
+        index=1 if 'enum' in df.columns else 0
     )
     
     st.sidebar.markdown('<span class="hint-text">Grouping</span>', unsafe_allow_html=True)
@@ -310,7 +310,7 @@ if uploaded_file is not None:
     date_col = st.sidebar.selectbox(
         "Date Column",
         ['Select a column'] + list(df.columns),
-        index=['Select a column'] + list(df.columns).index('starttime') if 'starttime' in df.columns else 0
+        index=1 if 'starttime' in df.columns else 0
     )
 
     if not all([enum_col != 'Select a column', date_col != 'Select a column']):
