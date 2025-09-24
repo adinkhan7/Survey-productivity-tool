@@ -74,6 +74,13 @@ def load_css(theme):
         hr {
             border: 1px solid #333;
         }
+        .stSelectbox [data-baseweb="select"] > div {
+            color: #fafafa !important;
+            background-color: #1e1e1e;
+        }
+        .stSelectbox [data-baseweb="select"] > div > div {
+            opacity: 0.5;
+        }
         </style>
         """
     else:  # Light theme
@@ -135,21 +142,28 @@ def load_css(theme):
         hr {
             border: 1px solid #dee2e6;
         }
+        .stSelectbox [data-baseweb="select"] > div {
+            color: #212529 !important;
+            background-color: #ffffff;
+        }
+        .stSelectbox [data-baseweb="select"] > div > div {
+            opacity: 0.5;
+        }
         </style>
         """
     st.markdown(css, unsafe_allow_html=True)
 
 # Sidebar for controls
-st.sidebar.title("⚙️ Controls")
+st.sidebar.title("Controls")
 theme = st.sidebar.selectbox("Theme", ["Light", "Dark"], index=0)
 load_css(theme)
 
 # File uploader in sidebar
-uploaded_file = st.sidebar.file_uploader("📁 Upload File", type=["dta", "xlsx", "xls"], help="Upload a .dta (Stata) or .xlsx/.xls (Excel) file containing survey data.")
+uploaded_file = st.sidebar.file_uploader("Upload File", type=["dta", "xlsx", "xls"], help="Upload a .dta (Stata) or .xlsx/.xls (Excel) file.")
 
 # Header style in sidebar
 header_style = st.sidebar.selectbox(
-    "📅 Date Header Style",
+    "Date Header Style",
     options=["Pretty (e.g., 10 Sep 2025)", "Safe (e.g., d_10Sep2025)", 
              "Compact (e.g., 10Sep2025)", "ISO (e.g., 2025-09-10)"],
     index=0,
@@ -157,9 +171,9 @@ header_style = st.sidebar.selectbox(
 )
 
 # Main content area
-col1, col2 = st.columns([2, 1])  # Uneven columns for title and info
+col1, col2 = st.columns([2, 1])
 with col1:
-    st.title("📊 Enumerator Daily Survey Productivity Tool")
+    st.title("Enumerator Daily Survey Productivity Tool")
 with col2:
     st.markdown("**Upload your .dta or .xlsx file to generate daily counts by enumerator (and optional grouping like village).**")
 
@@ -179,9 +193,9 @@ if uploaded_file is not None:
         else:
             file_buffer = io.BytesIO(file_bytes)
             df = pd.read_excel(file_buffer)
-        st.sidebar.success(f"✅ Loaded {len(df)} rows")
+        st.sidebar.success(f"Loaded {len(df)} rows")
     except Exception as e:
-        st.sidebar.error(f"❌ File read error: {e}")
+        st.sidebar.error(f"File read error: {e}")
         st.stop()
 
     # Handle MultiIndex and duplicates
@@ -202,42 +216,42 @@ if uploaded_file is not None:
         df.columns = new_columns
 
     # Column mappings in sidebar
-    st.sidebar.subheader("🔧 Column Mapping")
-    col_options = [''] + list(df.columns)
+    st.sidebar.subheader("Column Mapping")
+    col_options = ['Select a column'] + list(df.columns)
     consent_col = st.sidebar.selectbox(
         "Consent Column (optional)",
         col_options,
         index=0,
-        help="Select the column indicating consent status (e.g., 'yes/no', '1/0'). Leave blank if not applicable."
+        help="Select column with consent status (e.g., 'yes/no', '1/0')."
     )
     enum_col = st.sidebar.selectbox(
         "Enumerator Column",
         col_options,
-        index=0,
-        help="Select the column containing enumerator IDs or names (e.g., 'enum', 'enum_lab')."
+        index=col_options.index('enum') if 'enum' in col_options else 0,
+        help="Select column with enumerator IDs or names."
     )
     grouping_var_col = st.sidebar.selectbox(
         "Grouping Column (optional)",
         col_options,
         index=0,
-        help="Select a column for grouping counts (e.g., 'village', 'landmark', 'upazilla'). Leave blank if not needed."
+        help="Select column for grouping (e.g., 'village', 'upazilla')."
     )
     date_col = st.sidebar.selectbox(
         "Date Column",
         col_options,
-        index=0,
-        help="Select the column containing survey dates (e.g., 'fielddate', 'starttime', 'survey_date')."
+        index=col_options.index('starttime') if 'starttime' in col_options else 0,
+        help="Select column with survey dates."
     )
 
-    if not all([enum_col, date_col]):
-        st.sidebar.warning("⚠️ Select Enumerator and Date columns.")
+    if not all([enum_col != 'Select a column', date_col != 'Select a column']):
+        st.sidebar.warning("Select Enumerator and Date columns.")
         st.stop()
 
     # Rename and process
     rename_dict = {enum_col: 'enum'}
-    if consent_col:
+    if consent_col != 'Select a column':
         rename_dict[consent_col] = 'consent'
-    if grouping_var_col:
+    if grouping_var_col != 'Select a column':
         rename_dict[grouping_var_col] = 'grouping_var'
     df = df.rename(columns=rename_dict)
 
@@ -247,43 +261,43 @@ if uploaded_file is not None:
             df['date'] = pd.to_datetime(df['starttime'], errors='coerce').dt.date
             invalid_dates = df['date'].isna().sum()
             if invalid_dates > 0:
-                st.sidebar.warning(f"⚠️ {invalid_dates} invalid dates in 'starttime' dropped.")
+                st.sidebar.warning(f"{invalid_dates} invalid dates in 'starttime' dropped.")
                 df = df.dropna(subset=['date'])
         except Exception as e:
-            st.sidebar.error(f"❌ Date conversion error: {e}")
+            st.sidebar.error(f"Date conversion error: {e}")
             st.stop()
     else:
         try:
             df['date'] = pd.to_datetime(df[date_col], errors='coerce').dt.date
             invalid_dates = df['date'].isna().sum()
             if invalid_dates > 0:
-                st.sidebar.warning(f"⚠️ {invalid_dates} invalid dates in '{date_col}' dropped.")
+                st.sidebar.warning(f"{invalid_dates} invalid dates in '{date_col}' dropped.")
                 df = df.dropna(subset=['date'])
         except Exception as e:
-            st.sidebar.error(f"❌ Date conversion error: {e}")
+            st.sidebar.error(f"Date conversion error: {e}")
             st.stop()
 
     # Required vars and drops
     required_vars = ['enum', 'date']
-    if consent_col:
+    if consent_col != 'Select a column':
         required_vars.append('consent')
-    if grouping_var_col and 'grouping_var' not in df.columns:
-        st.sidebar.error("❌ Grouping column missing.")
+    if grouping_var_col != 'Select a column' and 'grouping_var' not in df.columns:
+        st.sidebar.error("Grouping column missing.")
         st.stop()
     missing_vars = [var for var in required_vars if var not in df.columns]
     if missing_vars:
-        st.sidebar.error(f"❌ Missing: {', '.join(missing_vars)}")
+        st.sidebar.error(f"Missing: {', '.join(missing_vars)}")
         st.stop()
 
     required_cols = ['enum', 'date']
-    if consent_col:
+    if consent_col != 'Select a column':
         required_cols.append('consent')
-    if grouping_var_col and 'grouping_var' in df.columns:
+    if grouping_var_col != 'Select a column' and 'grouping_var' in df.columns:
         required_cols.append('grouping_var')
     df = df.dropna(subset=required_cols)
 
     if len(df) == 0:
-        st.sidebar.warning("⚠️ No valid data.")
+        st.sidebar.warning("No valid data.")
         st.stop()
 
     # String conversions
@@ -304,31 +318,31 @@ if uploaded_file is not None:
             df['enum'] = df['enum'].astype(str).replace('nan', 'Unknown')
         df['enum'] = df['enum'].map(safe_to_string)
     except Exception as e:
-        st.sidebar.error(f"❌ Enum conversion: {e}")
+        st.sidebar.error(f"Enum conversion: {e}")
         st.stop()
 
-    if grouping_var_col and 'grouping_var' in df.columns:
+    if grouping_var_col != 'Select a column' and 'grouping_var' in df.columns:
         try:
             if df['grouping_var'].dtype.name == 'category':
                 df['grouping_var'] = df['grouping_var'].astype(str).replace('nan', 'Unknown')
             df['grouping_var'] = df['grouping_var'].map(safe_to_string)
             df['grouping_var'] = df['grouping_var'].fillna('Unknown')
             if df['grouping_var'].apply(lambda x: isinstance(x, (list, dict, tuple))).any():
-                st.sidebar.error("❌ Nested data in grouping.")
+                st.sidebar.error("Nested data in grouping.")
                 st.stop()
         except Exception as e:
-            st.sidebar.error(f"❌ Grouping conversion: {e}")
+            st.sidebar.error(f"Grouping conversion: {e}")
             st.stop()
 
     df['date'] = pd.to_datetime(df['date'], errors='coerce')
     df = df.dropna(subset=['date'])
 
     if len(df) == 0:
-        st.sidebar.warning("⚠️ No valid dates.")
+        st.sidebar.warning("No valid dates.")
         st.stop()
 
     # Consent categorization
-    if consent_col:
+    if consent_col != 'Select a column':
         def categorize_consent(x):
             x_str = str(x).lower().strip()
             if x_str in ['1', 'yes', 'true', 'y']:
@@ -338,14 +352,14 @@ if uploaded_file is not None:
 
     # Grouping and counts
     group_cols = ['enum']
-    if consent_col:
+    if consent_col != 'Select a column':
         group_cols.append('Consent_Status')
-    if grouping_var_col and 'grouping_var' in df.columns:
+    if grouping_var_col != 'Select a column' and 'grouping_var' in df.columns:
         group_cols.insert(1, 'grouping_var')
 
     missing_cols = [col for col in group_cols if col not in df.columns]
     if missing_cols:
-        st.sidebar.error(f"❌ Grouping cols missing: {missing_cols}")
+        st.sidebar.error(f"Grouping cols missing: {missing_cols}")
         st.stop()
 
     try:
@@ -355,14 +369,14 @@ if uploaded_file is not None:
               .reset_index(name='daily_count')
         )
     except Exception as e:
-        st.sidebar.error(f"❌ Groupby error: {e}")
+        st.sidebar.error(f"Groupby error: {e}")
         st.stop()
 
     # Reshape
     index_cols = ['enum']
-    if consent_col:
+    if consent_col != 'Select a column':
         index_cols.append('Consent_Status')
-    if grouping_var_col and 'grouping_var' in df.columns:
+    if grouping_var_col != 'Select a column' and 'grouping_var' in df.columns:
         index_cols.insert(1, 'grouping_var')
     reshaped = (
         daily_counts.pivot_table(
@@ -387,7 +401,7 @@ if uploaded_file is not None:
             renamed_cols[col] = safe_name
     reshaped = reshaped.rename(columns=renamed_cols)
 
-    st.sidebar.success(f"✅ Processed {len(reshaped)} rows{' (with consent split)' if consent_col else ''}.")
+    st.sidebar.success(f"Processed {len(reshaped)} rows{' (with consent split)' if consent_col != 'Select a column' else ''}.")
 
     # Pretty rename based on style
     pretty_reshaped = reshaped.copy()
@@ -411,7 +425,7 @@ if uploaded_file is not None:
     pretty_reshaped = pretty_reshaped.rename(columns=pretty_renamed)
 
     # Main preview
-    st.subheader("👀 Preview")
+    st.subheader("Preview")
     st.dataframe(pretty_reshaped, use_container_width=True)
 
     # Download in main, centered
@@ -419,4 +433,14 @@ if uploaded_file is not None:
     with col2:
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
-            pretty_reshaped.to
+            pretty_reshaped.to_excel(writer, sheet_name='Daily_survey_by_enum', index=False)
+        output.seek(0)
+        st.download_button(
+            label="Download Excel",
+            data=output.getvalue(),
+            file_name=f"daily_survey_productivity_{datetime.now().strftime('%Y%m%d')}.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            use_container_width=True
+        )
+else:
+    st.info("Upload a file in the sidebar to begin!")
