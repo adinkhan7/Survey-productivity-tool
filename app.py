@@ -13,7 +13,7 @@ st.set_page_config(
     page_icon="📊"
 )
 
-# Custom CSS for modern minimalistic look
+# Custom CSS for modern minimalistic look inspired by Material You and iOS 26
 def load_css(theme):
     if theme == "Dark":
         css = """
@@ -23,12 +23,13 @@ def load_css(theme):
             color: #fafafa;
         }
         .stTitle {
-            font-family: 'Segoe UI', sans-serif;
-            font-weight: 300;
+            font-family: 'SF Pro Display', 'Segoe UI', sans-serif;
+            font-weight: 400;
             color: #fafafa;
+            line-height: 1.2;
         }
         .stMarkdown {
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'SF Pro Text', 'Segoe UI', sans-serif;
             color: #e1e5e9;
         }
         .stSelectbox > label, .stTextInput > label, .stFileUploader > label {
@@ -38,6 +39,7 @@ def load_css(theme):
         .stDataFrame {
             background-color: #1e1e1e;
             color: #fafafa;
+            border-radius: 12px;
         }
         .stDataFrame thead tr th {
             background-color: #2a2a2a;
@@ -52,9 +54,10 @@ def load_css(theme):
         .stDownloadButton > button {
             background-color: #1f77b4;
             color: #fafafa;
-            border-radius: 6px;
-            padding: 0.5rem 1rem;
+            border-radius: 12px;
+            padding: 0.6rem 1.2rem;
             font-weight: 500;
+            transition: background-color 0.3s ease;
         }
         .stDownloadButton > button:hover {
             background-color: #155a8a;
@@ -62,14 +65,17 @@ def load_css(theme):
         .stWarning > div {
             background-color: #3d2b1f;
             color: #f0ad4e;
+            border-radius: 8px;
         }
         .stError > div {
             background-color: #3d1a1a;
             color: #d9534f;
+            border-radius: 8px;
         }
         .stSuccess > div {
             background-color: #1a3d1a;
             color: #5cb85c;
+            border-radius: 8px;
         }
         hr {
             border: 1px solid #333;
@@ -77,9 +83,16 @@ def load_css(theme):
         .stSelectbox [data-baseweb="select"] > div {
             color: #fafafa !important;
             background-color: #1e1e1e;
+            border-radius: 8px;
         }
         .stSelectbox [data-baseweb="select"] > div > div {
-            opacity: 0.5;
+            opacity: 0.7;
+        }
+        .stSidebar {
+            background-color: #1e1e1e;
+            padding: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
         </style>
         """
@@ -87,67 +100,82 @@ def load_css(theme):
         css = """
         <style>
         .stApp {
-            background-color: #ffffff;
-            color: #212529;
+            background-color: #f5f5f5;
+            color: #1c2526;
         }
         .stTitle {
-            font-family: 'Segoe UI', sans-serif;
-            font-weight: 300;
-            color: #212529;
+            font-family: 'SF Pro Display', 'Segoe UI', sans-serif;
+            font-weight: 400;
+            color: #1c2526;
+            line-height: 1.2;
         }
         .stMarkdown {
-            font-family: 'Segoe UI', sans-serif;
-            color: #495057;
+            font-family: 'SF Pro Text', 'Segoe UI', sans-serif;
+            color: #3c4b4e;
         }
         .stSelectbox > label, .stTextInput > label, .stFileUploader > label {
-            color: #212529;
+            color: #1c2526;
             font-weight: 500;
         }
         .stDataFrame {
             background-color: #ffffff;
-            color: #212529;
+            color: #1c2526;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
         .stDataFrame thead tr th {
             background-color: #f8f9fa;
-            color: #212529;
-            border-bottom: 1px solid #dee2e6;
+            color: #1c2526;
+            border-bottom: 1px solid #d1d5db;
         }
         .stDataFrame tbody tr td {
             background-color: #ffffff;
-            color: #212529;
-            border-bottom: 1px solid #dee2e6;
+            color: #1c2526;
+            border-bottom: 1px solid #d1d5db;
         }
         .stDownloadButton > button {
             background-color: #007bff;
             color: #ffffff;
-            border-radius: 6px;
-            padding: 0.5rem 1rem;
+            border-radius: 12px;
+            padding: 0.6rem 1.2rem;
             font-weight: 500;
+            transition: background-color 0.3s ease;
         }
         .stDownloadButton > button:hover {
             background-color: #0056b3;
         }
         .stWarning > div {
-            background-color: #fff3cd;
-            color: #856404;
+            background-color: #fef7e0;
+            color: #854d0e;
+            border-radius: 8px;
         }
         .stError > div {
-            background-color: #f8d7da;
-            color: #721c24;
+            background-color: #fee2e2;
+            color: #991b1b;
+            border-radius: 8px;
         }
         .stSuccess > div {
-            background-color: #d4edda;
-            color: #155724;
+            background-color: #dcfce7;
+            color: #166534;
+            border-radius: 8px;
         }
         hr {
-            border: 1px solid #dee2e6;
+            border: 1px solid #d1d5db;
         }
         .stSelectbox [data-baseweb="select"] > div {
-            color: #212529 !important;
+            color: #1c2526 !important;
             background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
         .stSelectbox [data-baseweb="select"] > div > div {
-            opacity: 0.5;
+            opacity: 0.7;
+        }
+        .stSidebar {
+            background-color: #ffffff;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
         </style>
         """
@@ -171,11 +199,8 @@ header_style = st.sidebar.selectbox(
 )
 
 # Main content area
-col1, col2 = st.columns([2, 1])
-with col1:
-    st.title("Enumerator Daily Survey Productivity Tool")
-with col2:
-    st.markdown("**Upload your .dta or .xlsx file to generate daily counts by enumerator (and optional grouping like village).**")
+st.title("Enumerator Daily Survey Productivity Tool")
+st.markdown("**Upload your .dta or .xlsx file to generate daily counts by enumerator (and optional grouping like village).**")
 
 # Process file if uploaded
 if uploaded_file is not None:
