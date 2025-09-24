@@ -13,7 +13,7 @@ st.set_page_config(
     page_icon="📊"
 )
 
-# Custom CSS for modern look with dark blue accents
+# Custom CSS for Material UI-inspired look with dark blue accents
 def load_css(theme):
     if theme == "Dark":
         css = """
@@ -22,27 +22,49 @@ def load_css(theme):
             background-color: #0e1117;
             color: #fafafa;
         }
+        .stSidebar {
+            background-color: #1a1d2e;
+            padding: 1rem;
+        }
         .stTitle {
-            font-family: 'Segoe UI', sans-serif;
-            font-weight: 600;
+            font-family: 'Roboto', 'Segoe UI', sans-serif;
+            font-weight: 500;
             font-size: 2.2rem;
             color: #fafafa;
         }
         .stMarkdown {
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Roboto', 'Segoe UI', sans-serif;
             color: #e1e5e9;
         }
         .stSelectbox > label, .stTextInput > label, .stFileUploader > label {
             color: #fafafa;
             font-weight: 500;
+            font-family: 'Roboto', 'Segoe UI', sans-serif;
         }
         .stSelectbox > div > div > div {
             color: #fafafa !important;
-            background-color: #1e1e1e;
+            background-color: #2a2a2a;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+            transition: box-shadow 0.2s ease-in-out;
+        }
+        .stSelectbox > div > div > div:hover {
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .stFileUploader > div > div {
+            background-color: #2a2a2a;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+            transition: box-shadow 0.2s ease-in-out;
+        }
+        .stFileUploader > div > div:hover {
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);
         }
         .stDataFrame {
             background-color: #1e1e1e;
             color: #fafafa;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
         }
         .stDataFrame thead tr th {
             background-color: #2a2a2a;
@@ -57,63 +79,95 @@ def load_css(theme):
         .stDownloadButton > button {
             background-color: #0E3B5E;
             color: #fafafa;
-            border-radius: 6px;
+            border-radius: 4px;
             padding: 0.5rem 1rem;
             font-weight: 500;
+            font-family: 'Roboto', 'Segoe UI', sans-serif;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+            transition: box-shadow 0.2s ease-in-out;
         }
         .stDownloadButton > button:hover {
             background-color: #092b44;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);
         }
         .stWarning > div {
             background-color: #3d2b1f;
             color: #f0ad4e;
+            border-radius: 4px;
         }
         .stError > div {
             background-color: #3d1a1a;
             color: #d9534f;
+            border-radius: 4px;
         }
         .stSuccess > div {
             background-color: #1a3d1a;
             color: #5cb85c;
+            border-radius: 4px;
         }
         hr {
-            border: 1px solid #333;
+            border: 1px solid #444;
+            margin: 1rem 0;
         }
         .hint-text {
             font-size: 0.8rem;
             color: #a0a0a0;
             margin-bottom: 0.2rem;
+            font-family: 'Roboto', 'Segoe UI', sans-serif;
         }
         </style>
         """
-    else:  # Light theme with dark blue accents
+    else:  # Light theme with white sidebar and dark blue accents
         css = """
         <style>
         .stApp {
             background-color: #f9fafb;
             color: #1a1a1a;
         }
+        .stSidebar {
+            background-color: #ffffff;
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+        }
         .stTitle {
-            font-family: 'Segoe UI', sans-serif;
-            font-weight: 600;
+            font-family: 'Roboto', 'Segoe UI', sans-serif;
+            font-weight: 500;
             font-size: 2.2rem;
             color: #0E3B5E;
         }
         .stMarkdown {
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Roboto', 'Segoe UI', sans-serif;
             color: #333333;
         }
         .stSelectbox > label, .stTextInput > label, .stFileUploader > label {
             color: #1a1a1a;
             font-weight: 500;
+            font-family: 'Roboto', 'Segoe UI', sans-serif;
         }
         .stSelectbox > div > div > div {
             color: #1a1a1a !important;
             background-color: #ffffff;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+            transition: box-shadow 0.2s ease-in-out;
+        }
+        .stSelectbox > div > div > div:hover {
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .stFileUploader > div > div {
+            background-color: #ffffff;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+            transition: box-shadow 0.2s ease-in-out;
+        }
+        .stFileUploader > div > div:hover {
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);
         }
         .stDataFrame {
             background-color: #ffffff;
             color: #1a1a1a;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
         }
         .stDataFrame thead tr th {
             background-color: #e9ecef;
@@ -128,32 +182,41 @@ def load_css(theme):
         .stDownloadButton > button {
             background-color: #0E3B5E;
             color: #ffffff;
-            border-radius: 6px;
+            border-radius: 4px;
             padding: 0.5rem 1rem;
             font-weight: 500;
+            font-family: 'Roboto', 'Segoe UI', sans-serif;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+            transition: box-shadow 0.2s ease-in-out;
         }
         .stDownloadButton > button:hover {
             background-color: #092b44;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);
         }
         .stWarning > div {
             background-color: #fff3cd;
             color: #664d03;
+            border-radius: 4px;
         }
         .stError > div {
             background-color: #f8d7da;
             color: #58151c;
+            border-radius: 4px;
         }
         .stSuccess > div {
             background-color: #d1fae5;
             color: #0f5132;
+            border-radius: 4px;
         }
         hr {
             border: 1px solid #ced4da;
+            margin: 1rem 0;
         }
         .hint-text {
             font-size: 0.8rem;
             color: #6b7280;
             margin-bottom: 0.2rem;
+            font-family: 'Roboto', 'Segoe UI', sans-serif;
         }
         </style>
         """
@@ -161,11 +224,13 @@ def load_css(theme):
 
 # Sidebar for controls
 st.sidebar.title("Controls")
+st.sidebar.markdown('<hr>', unsafe_allow_html=True)
 theme = st.sidebar.selectbox("Theme", ["Light", "Dark"], index=0)
 load_css(theme)
 
 # File uploader in sidebar
 uploaded_file = st.sidebar.file_uploader("Upload File", type=["dta", "xlsx", "xls"], help="Upload a .dta (Stata) or .xlsx/.xls (Excel) file.")
+st.sidebar.markdown('<hr>', unsafe_allow_html=True)
 
 # Header style in sidebar
 header_style = st.sidebar.selectbox(
@@ -175,6 +240,7 @@ header_style = st.sidebar.selectbox(
     index=0,
     help="Select how date columns will appear in the output Excel file."
 )
+st.sidebar.markdown('<hr>', unsafe_allow_html=True)
 
 # Main content area
 st.title("Enumerator Daily Survey Productivity Tool")
