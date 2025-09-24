@@ -4,192 +4,193 @@ import pyreadstat
 import io
 import tempfile
 import os
-from datetime import datetime
 
-# ----------------------------------------
 # Page config
-# ----------------------------------------
 st.set_page_config(
-    page_title="Enumerator Daily Survey Productivity Tool",
-    layout="wide"
+    page_title="Survey Productivity Dashboard",
+    layout="wide",
+    initial_sidebar_state="collapsed"
 )
 
-# ----------------------------------------
-# Custom CSS for styling + sticky header
-# ----------------------------------------
+# Custom CSS for minimalist modern styling
 st.markdown(
     """
     <style>
-    /* Global white/black theme */
+    /* Reset and base styles */
     .stApp {
-        background-color: #ffffff !important;
-        color: #000000 !important;
-        font-family: "Segoe UI", sans-serif;
+        background-color: #f8fafc;
+        color: #1e293b;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        line-height: 1.5;
     }
 
-    /* Sidebar */
-    section[data-testid="stSidebar"] {
-        background-color: #ffffff !important;
-        color: #000000 !important;
-    }
-
-    /* Titles and text */
-    .stMarkdown, .stText, .stSubheader, .stHeader, .stTitle {
-        color: #000000 !important;
-    }
-
-    /* DataFrames */
-    .stDataFrame {
-        background-color: #ffffff !important;
-        color: #000000 !important;
-    }
-
-    /* Input widgets (selectbox, text input, file uploader) */
-    div[data-baseweb="select"] > div {
-        background-color: #ffffff !important;
-        color: #000000 !important;
-        border: 1px solid #ccc !important;
-        border-radius: 6px !important;
-    }
-    div[data-baseweb="input"] > div {
-        background-color: #ffffff !important;
-        color: #000000 !important;
-        border: 1px solid #ccc !important;
-        border-radius: 6px !important;
-    }
-    section[data-testid="stFileUploaderDropzone"] {
-        background-color: #ffffff !important;
-        border: 2px dashed #ccc !important;
-        color: #000000 !important;
-    }
-
-    /* Buttons */
-    button[kind="primary"], button[data-baseweb="button"] {
-        background-color: #ffffff !important;
-        color: #000000 !important;
-        border: 1px solid #000000 !important;
-        border-radius: 8px !important;
-        padding: 0.4rem 1rem !important;
-        font-weight: 500 !important;
-        transition: all 0.2s ease-in-out;
-    }
-    button[kind="primary"]:hover, button[data-baseweb="button"]:hover {
-        background-color: #000000 !important;
-        color: #ffffff !important;
-    }
-
-    /* Sticky header */
+    /* Header */
     .app-header {
         position: sticky;
         top: 0;
-        z-index: 999;
+        z-index: 1000;
         background-color: #ffffff;
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid #e2e8f0;
+        margin-bottom: 2rem;
+    }
+    .app-header h1 {
+        font-size: 1.75rem;
+        font-weight: 600;
+        color: #0f172a;
+        margin-bottom: 0.5rem;
+    }
+    .app-header p {
+        font-size: 1rem;
+        color: #64748b;
+        max-width: 600px;
+    }
+
+    /* File uploader */
+    div[data-testid="stFileUploaderDropzone"] {
+        background-color: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 1.5rem;
+        transition: all 0.2s ease;
+    }
+    div[data-testid="stFileUploaderDropzone"]:hover {
+        border-color: #3b82f6;
+        background-color: #f8fafc;
+    }
+
+    /* Select boxes */
+    div[data-baseweb="select"] > div {
+        background-color: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 0.5rem;
+        font-size: 0.875rem;
+    }
+    div[data-baseweb="select"]:hover > div {
+        border-color: #3b82f6;
+    }
+
+    /* Buttons */
+    button[kind="primary"] {
+        background-color: #3b82f6;
+        color: #ffffff;
+        border: none;
+        border-radius: 8px;
+        padding: 0.5rem 1.5rem;
+        font-weight: 500;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+    }
+    button[kind="primary"]:hover {
+        background-color: #2563eb;
+    }
+
+    /* Alerts and info boxes */
+    .stAlert {
+        border-radius: 8px;
         padding: 1rem;
-        border-bottom: 1px solid #ccc;
+        margin-bottom: 1rem;
     }
     </style>
     """,
     unsafe_allow_html=True
 )
 
-# ----------------------------------------
-# Sticky header (title + description)
-# ----------------------------------------
+# Header
 st.markdown(
     """
     <div class="app-header">
-        <h1>Enumerator Daily Survey Productivity Tool</h1>
-        <p>
-            Upload your <b>.dta</b> or <b>.xlsx</b> file to generate a daily survey count 
-            sheet by enumerator and optional grouping variable.
-        </p>
+        <h1>Survey Productivity Dashboard</h1>
+        <p>Upload a .dta or .xlsx file to generate daily survey counts by enumerator and optional grouping.</p>
     </div>
     """,
     unsafe_allow_html=True
 )
 
-# ----------------------------------------
-# Main App Logic
-# ----------------------------------------
-
-# File uploader
-uploaded_file = st.file_uploader("Choose a .dta or .xlsx file", type=["dta", "xlsx", "xls"])
-
-# Header style selector
-header_style = st.selectbox(
-    "Choose date column header style for Excel output",
-    options=["Pretty (e.g., 10 Sep 2025)", "Safe (e.g., d_10Sep2025)", 
-             "Compact (e.g., 10Sep2025)", "ISO (e.g., 2025-09-10)"],
-    index=0
-)
-
-if uploaded_file is not None:
-    # Read the file
-    try:
-        file_bytes = uploaded_file.read()
-        if uploaded_file.name.lower().endswith('.dta'):
-            # Write bytes to a temporary file for .dta
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.dta') as tmp:
-                tmp.write(file_bytes)
-                tmp_path = tmp.name
-            try:
-                # Apply value labels for .dta to get enum labels
-                df, meta = pyreadstat.read_dta(tmp_path, apply_value_formats=True)
-            finally:
-                os.unlink(tmp_path)  # Clean up temp file
-        else:
-            # Use BytesIO for .xlsx
-            file_buffer = io.BytesIO(file_bytes)
-            df = pd.read_excel(file_buffer)
-        st.success(f"Loaded {len(df)} rows successfully!")
-    except Exception as e:
-        st.error(f"Oops, couldn't read the file: {e}")
-        st.stop()
-
-    # Handle MultiIndex and duplicate columns
-    if isinstance(df.columns, pd.MultiIndex):
-        st.warning("MultiIndex columns detected. Flattening to single-level column names.")
-        df.columns = ['_'.join(map(str, col)).strip() for col in df.columns]
-    if df.columns.duplicated().any():
-        st.warning("Duplicate column names detected. Renaming duplicates to avoid conflicts.")
-        new_columns = []
-        seen = {}
-        for col in df.columns:
-            if col in seen:
-                seen[col] += 1
-                new_columns.append(f"{col}_dup{seen[col]}")
-            else:
-                seen[col] = 0
-                new_columns.append(col)
-        df.columns = new_columns
-        st.write("New column names after resolving duplicates:")
-        st.write(df.columns.tolist())
-
-    # Column mapping
-    st.subheader("Map Your Columns")
-    col_options = [''] + list(df.columns)
-    consent_col = st.selectbox(
-        "Select column for Consent (e.g., 1/0, yes/no, optional)",
-        col_options,
-        index=0 # always default to empty
+# Main container
+with st.container():
+    # File uploader
+    uploaded_file = st.file_uploader(
+        "Upload .dta or .xlsx file",
+        type=["dta", "xlsx", "xls"],
+        help="Select a data file to analyze"
     )
-    enum_col = st.selectbox(
-        "Select column for Enumerator (e.g., enum or enum_lab)",
-        col_options,
-        index=col_options.index('enum') if 'enum' in col_options else (col_options.index('enum_lab') if 'enum_lab' in col_options else 0)
-    )
-    grouping_var_col = st.selectbox(
-        "Select column for Address/Location (e.g., village, landmark, upazilla, optional)",
-        col_options,
+
+    # Header style selector
+    header_style = st.selectbox(
+        "Date column header style",
+        options=["Pretty (10 Sep 2025)", "Safe (d_10Sep2025)", "Compact (10Sep2025)", "ISO (2025-09-10)"],
+        help="Choose how dates appear in the output",
         index=0
     )
-    date_col = st.selectbox(
-        "Select column for Date (e.g., fielddate, survey_date, collection_date, starttime)",
-        col_options,
-        index=col_options.index('starttime') if 'starttime' in col_options else (col_options.index('fielddate') if 'fielddate' in col_options else 0)
-    )
 
-    # ---- (rest of your original logic remains unchanged) ----
-    # Your processing, grouping, reshaping, preview, and download button code continues here...
-else:
-    st.info("Upload a file, map your columns, and choose a header style to get started!")
+    if uploaded_file is not None:
+        # Read file
+        try:
+            file_bytes = uploaded_file.read()
+            if uploaded_file.name.lower().endswith('.dta'):
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.dta') as tmp:
+                    tmp.write(file_bytes)
+                    tmp_path = tmp.name
+                try:
+                    df, meta = pyreadstat.read_dta(tmp_path, apply_value_formats=True)
+                finally:
+                    os.unlink(tmp_path)
+            else:
+                file_buffer = io.BytesIO(file_bytes)
+                df = pd.read_excel(file_buffer)
+            st.success(f"Successfully loaded {len(df)} rows")
+        except Exception as e:
+            st.error(f"Error reading file: {e}")
+            st.stop()
+
+        # Handle MultiIndex and duplicates
+        if isinstance(df.columns, pd.MultiIndex):
+            st.warning("MultiIndex columns detected. Converting to single-level names.")
+            df.columns = ['_'.join(map(str, col)).strip() for col in df.columns]
+        if df.columns.duplicated().any():
+            st.warning("Duplicate columns found. Renaming to avoid conflicts.")
+            new_columns = []
+            seen = {}
+            for col in df.columns:
+                if col in seen:
+                    seen[col] += 1
+                    new_columns.append(f"{col}_dup{seen[col]}")
+                else:
+                    seen[col] = 0
+                    new_columns.append(col)
+            df.columns = new_columns
+            with st.expander("View column names"):
+                st.write(df.columns.tolist())
+
+        # Column mapping
+        st.subheader("Column Mapping")
+        col_options = [''] + list(df.columns)
+        col1, col2 = st.columns(2)
+        with col1:
+            consent_col = st.selectbox(
+                "Consent column (optional)",
+                col_options,
+                help="Select column with consent data (e.g., 1/0, yes/no)"
+            )
+            enum_col = st.selectbox(
+                "Enumerator column",
+                col_options,
+                index=col_options.index('enum') if 'enum' in col_options else (col_options.index('enum_lab') if 'enum_lab' in col_options else 0),
+                help="Select column with enumerator IDs or names"
+            )
+        with col2:
+            grouping_var_col = st.selectbox(
+                "Location column (optional)",
+                col_options,
+                help="Select column for grouping (e.g., village, landmark)"
+            )
+            date_col = st.selectbox(
+                "Date column",
+                col_options,
+                index=col_options.index('starttime') if 'starttime' in col_options else (col_options.index('fielddate') if 'fielddate' in col_options else 0),
+                help="Select column with survey dates"
+            )
+    else:
+        st.info("Upload a file to begin analyzing survey data.")
