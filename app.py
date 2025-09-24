@@ -13,7 +13,7 @@ st.set_page_config(
     page_icon="📊"
 )
 
-# Custom CSS for modern minimalistic look with improved light theme contrast
+# Custom CSS for modern minimalistic look
 def load_css(theme):
     if theme == "Dark":
         css = """
@@ -34,10 +34,6 @@ def load_css(theme):
         .stSelectbox > label, .stTextInput > label, .stFileUploader > label {
             color: #fafafa;
             font-weight: 500;
-        }
-        .stSelectbox > div > div > div {
-            color: #fafafa !important;
-            background-color: #1e1e1e;
         }
         .stDataFrame {
             background-color: #1e1e1e;
@@ -78,80 +74,80 @@ def load_css(theme):
         hr {
             border: 1px solid #333;
         }
-        .hint-text {
-            font-size: 0.8rem;
-            color: #a0a0a0;
-            margin-bottom: 0.2rem;
+        .stSelectbox [data-baseweb="select"] > div {
+            color: #fafafa !important;
+            background-color: #1e1e1e;
+        }
+        .stSelectbox [data-baseweb="select"] > div > div {
+            opacity: 0.5;
         }
         </style>
         """
-    else:  # Light theme with improved contrast
+    else:  # Light theme
         css = """
         <style>
         .stApp {
-            background-color: #f9fafb;
-            color: #1a1a1a;
+            background-color: #ffffff;
+            color: #212529;
         }
         .stTitle {
             font-family: 'Segoe UI', sans-serif;
             font-weight: 300;
-            color: #1a1a1a;
+            color: #212529;
         }
         .stMarkdown {
             font-family: 'Segoe UI', sans-serif;
-            color: #333333;
+            color: #495057;
         }
         .stSelectbox > label, .stTextInput > label, .stFileUploader > label {
-            color: #1a1a1a;
+            color: #212529;
             font-weight: 500;
-        }
-        .stSelectbox > div > div > div {
-            color: #1a1a1a !important;
-            background-color: #ffffff;
         }
         .stDataFrame {
             background-color: #ffffff;
-            color: #1a1a1a;
+            color: #212529;
         }
         .stDataFrame thead tr th {
-            background-color: #e9ecef;
-            color: #1a1a1a;
-            border-bottom: 1px solid #ced4da;
+            background-color: #f8f9fa;
+            color: #212529;
+            border-bottom: 1px solid #dee2e6;
         }
         .stDataFrame tbody tr td {
             background-color: #ffffff;
-            color: #1a1a1a;
-            border-bottom: 1px solid #ced4da;
+            color: #212529;
+            border-bottom: 1px solid #dee2e6;
         }
         .stDownloadButton > button {
-            background-color: #0066cc;
+            background-color: #007bff;
             color: #ffffff;
             border-radius: 6px;
             padding: 0.5rem 1rem;
             font-weight: 500;
         }
         .stDownloadButton > button:hover {
-            background-color: #004d99;
+            background-color: #0056b3;
         }
         .stWarning > div {
             background-color: #fff3cd;
-            color: #664d03;
+            color: #856404;
         }
         .stError > div {
             background-color: #f8d7da;
-            color: #58151c;
+            color: #721c24;
         }
         .stSuccess > div {
-            background-color: #d1fae5;
-            color: #0f5132;
+            background-color: #d4edda;
+            color: #155724;
         }
         hr {
-            border: 1px solid #ced4da;
+            border: 1px solid #dee2e6;
         }
-        .hint-text {
-            font-size: 0.8rem;
-            color: #6b7280;
-            margin-bottom: 0.2rem;
+        .stSelectbox [data-baseweb="select"] > div {
+            color: #212529 !important;
+            background-color: #ffffff;
+        }
+        .stSelectbox [data-baseweb="select"] > div > div {
+            opacity: 0.5;
         }
         </style>
         """
@@ -222,32 +218,24 @@ if uploaded_file is not None:
     # Column mappings in sidebar
     st.sidebar.subheader("Column Mapping")
     col_options = ['Select a column'] + list(df.columns)
-    
-    st.sidebar.markdown('<span class="hint-text">Consent</span>', unsafe_allow_html=True)
     consent_col = st.sidebar.selectbox(
         "Consent Column (optional)",
         col_options,
         index=0,
         help="Select column with consent status (e.g., 'yes/no', '1/0')."
     )
-    
-    st.sidebar.markdown('<span class="hint-text">Enumerator</span>', unsafe_allow_html=True)
     enum_col = st.sidebar.selectbox(
         "Enumerator Column",
         col_options,
         index=col_options.index('enum') if 'enum' in col_options else 0,
         help="Select column with enumerator IDs or names."
     )
-    
-    st.sidebar.markdown('<span class="hint-text">Grouping</span>', unsafe_allow_html=True)
     grouping_var_col = st.sidebar.selectbox(
         "Grouping Column (optional)",
         col_options,
         index=0,
         help="Select column for grouping (e.g., 'village', 'upazilla')."
     )
-    
-    st.sidebar.markdown('<span class="hint-text">Date</span>', unsafe_allow_html=True)
     date_col = st.sidebar.selectbox(
         "Date Column",
         col_options,
