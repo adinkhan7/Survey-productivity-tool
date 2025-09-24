@@ -145,14 +145,15 @@ theme = st.sidebar.selectbox("Theme", ["Light", "Dark"], index=0)
 load_css(theme)
 
 # File uploader in sidebar
-uploaded_file = st.sidebar.file_uploader("📁 Upload File", type=["dta", "xlsx", "xls"])
+uploaded_file = st.sidebar.file_uploader("📁 Upload File", type=["dta", "xlsx", "xls"], help="Upload a .dta (Stata) or .xlsx/.xls (Excel) file containing survey data.")
 
 # Header style in sidebar
 header_style = st.sidebar.selectbox(
     "📅 Date Header Style",
     options=["Pretty (e.g., 10 Sep 2025)", "Safe (e.g., d_10Sep2025)", 
              "Compact (e.g., 10Sep2025)", "ISO (e.g., 2025-09-10)"],
-    index=0
+    index=0,
+    help="Select how date columns will appear in the output Excel file."
 )
 
 # Main content area
@@ -203,17 +204,29 @@ if uploaded_file is not None:
     # Column mappings in sidebar
     st.sidebar.subheader("🔧 Column Mapping")
     col_options = [''] + list(df.columns)
-    consent_col = st.sidebar.selectbox("Consent Column (optional)", col_options, index=0)
+    consent_col = st.sidebar.selectbox(
+        "Consent Column (optional)",
+        col_options,
+        index=0,
+        help="Select the column indicating consent status (e.g., 'yes/no', '1/0'). Leave blank if not applicable."
+    )
     enum_col = st.sidebar.selectbox(
         "Enumerator Column",
         col_options,
-        index=col_options.index('enum') if 'enum' in col_options else (col_options.index('enum_lab') if 'enum_lab' in col_options else 0)
+        index=0,
+        help="Select the column containing enumerator IDs or names (e.g., 'enum', 'enum_lab')."
     )
-    grouping_var_col = st.sidebar.selectbox("Grouping Column (optional)", col_options, index=0)
+    grouping_var_col = st.sidebar.selectbox(
+        "Grouping Column (optional)",
+        col_options,
+        index=0,
+        help="Select a column for grouping counts (e.g., 'village', 'landmark', 'upazilla'). Leave blank if not needed."
+    )
     date_col = st.sidebar.selectbox(
         "Date Column",
         col_options,
-        index=col_options.index('starttime') if 'starttime' in col_options else (col_options.index('fielddate') if 'fielddate' in col_options else 0)
+        index=0,
+        help="Select the column containing survey dates (e.g., 'fielddate', 'starttime', 'survey_date')."
     )
 
     if not all([enum_col, date_col]):
@@ -406,14 +419,4 @@ if uploaded_file is not None:
     with col2:
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
-            pretty_reshaped.to_excel(writer, sheet_name='Daily_survey_by_enum', index=False)
-        output.seek(0)
-        st.download_button(
-            label="💾 Download Excel",
-            data=output.getvalue(),
-            file_name=f"daily_survey_productivity_{datetime.now().strftime('%Y%m%d')}.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            use_container_width=True
-        )
-else:
-    st.info("👆 Upload a file in the sidebar to begin!")
+            pretty_reshaped.to
