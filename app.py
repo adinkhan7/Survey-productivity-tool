@@ -433,5 +433,3 @@ if uploaded_file is not None:
         )
 else:
     st.info("Upload a file in the sidebar to begin!")
-
-```
