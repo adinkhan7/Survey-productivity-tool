@@ -1,3 +1,12 @@
+Here is the updated code. I have added a new optional input field called **"Additional Grouping (Optional)"**.
+
+I have ensured that:
+
+1. It appears in the sidebar below the "Address" field.
+2. It uses the same robust `safe_to_string` conversion logic as the other fields, so it will accept **bytes, integers, strings, categories, or floats** without crashing.
+3. No other logic or styling was altered.
+
+```python
 import streamlit as st
 import pandas as pd
 import pyreadstat
@@ -173,6 +182,14 @@ if uploaded_file is not None:
             index=0,
             help="Select column for grouping (e.g., 'village', 'upazilla')."
         )
+        # --- NEW FIELD ADDED HERE ---
+        grouping_var_col_2 = st.selectbox(
+            "Additional Grouping (Optional)",
+            col_options,
+            index=0,
+            help="Select another column for grouping (e.g., 'team_id', 'district')."
+        )
+        # ----------------------------
         date_col = st.selectbox(
             "Date Column",
             col_options,
@@ -190,6 +207,10 @@ if uploaded_file is not None:
         rename_dict[consent_col] = 'consent'
     if grouping_var_col != 'Select a column':
         rename_dict[grouping_var_col] = 'grouping_var'
+    # --- RENAME NEW FIELD ---
+    if grouping_var_col_2 != 'Select a column':
+        rename_dict[grouping_var_col_2] = 'grouping_var_2'
+    # ------------------------
     df = df.rename(columns=rename_dict)
 
     # Date handling
@@ -221,6 +242,12 @@ if uploaded_file is not None:
     if grouping_var_col != 'Select a column' and 'grouping_var' not in df.columns:
         st.sidebar.error("Grouping column missing.")
         st.stop()
+    # --- CHECK NEW FIELD MISSING ---
+    if grouping_var_col_2 != 'Select a column' and 'grouping_var_2' not in df.columns:
+        st.sidebar.error("Additional Grouping column missing.")
+        st.stop()
+    # -------------------------------
+    
     missing_vars = [var for var in required_vars if var not in df.columns]
     if missing_vars:
         st.sidebar.error(f"Missing: {', '.join(missing_vars)}")
@@ -231,6 +258,10 @@ if uploaded_file is not None:
         required_cols.append('consent')
     if grouping_var_col != 'Select a column' and 'grouping_var' in df.columns:
         required_cols.append('grouping_var')
+    # --- ADD NEW FIELD TO REQUIRED COLS ---
+    if grouping_var_col_2 != 'Select a column' and 'grouping_var_2' in df.columns:
+        required_cols.append('grouping_var_2')
+    # --------------------------------------
     df = df.dropna(subset=required_cols)
 
     if len(df) == 0:
@@ -271,6 +302,21 @@ if uploaded_file is not None:
             st.sidebar.error(f"Grouping conversion: {e}")
             st.stop()
 
+    # --- PROCESS NEW FIELD (CONVERT TO STRING SAFELY) ---
+    if grouping_var_col_2 != 'Select a column' and 'grouping_var_2' in df.columns:
+        try:
+            if df['grouping_var_2'].dtype.name == 'category':
+                df['grouping_var_2'] = df['grouping_var_2'].astype(str).replace('nan', 'Unknown')
+            df['grouping_var_2'] = df['grouping_var_2'].map(safe_to_string)
+            df['grouping_var_2'] = df['grouping_var_2'].fillna('Unknown')
+            if df['grouping_var_2'].apply(lambda x: isinstance(x, (list, dict, tuple))).any():
+                st.sidebar.error("Nested data in additional grouping.")
+                st.stop()
+        except Exception as e:
+            st.sidebar.error(f"Additional Grouping conversion: {e}")
+            st.stop()
+    # ----------------------------------------------------
+
     df['date'] = pd.to_datetime(df['date'], errors='coerce')
     df = df.dropna(subset=['date'])
 
@@ -293,6 +339,12 @@ if uploaded_file is not None:
         group_cols.append('Consent_Status')
     if grouping_var_col != 'Select a column' and 'grouping_var' in df.columns:
         group_cols.insert(1, 'grouping_var')
+    # --- ADD NEW FIELD TO GROUP COLS ---
+    if grouping_var_col_2 != 'Select a column' and 'grouping_var_2' in df.columns:
+        # Insert after the first grouping var if it exists, otherwise at index 1
+        insert_idx = 2 if (grouping_var_col != 'Select a column' and 'grouping_var' in df.columns) else 1
+        group_cols.insert(insert_idx, 'grouping_var_2')
+    # -----------------------------------
 
     missing_cols = [col for col in group_cols if col not in df.columns]
     if missing_cols:
@@ -315,6 +367,12 @@ if uploaded_file is not None:
         index_cols.append('Consent_Status')
     if grouping_var_col != 'Select a column' and 'grouping_var' in df.columns:
         index_cols.insert(1, 'grouping_var')
+    # --- ADD NEW FIELD TO INDEX COLS ---
+    if grouping_var_col_2 != 'Select a column' and 'grouping_var_2' in df.columns:
+        insert_idx = 2 if (grouping_var_col != 'Select a column' and 'grouping_var' in df.columns) else 1
+        index_cols.insert(insert_idx, 'grouping_var_2')
+    # -----------------------------------
+
     reshaped = (
         daily_counts.pivot_table(
             index=index_cols,
@@ -381,3 +439,5 @@ if uploaded_file is not None:
         )
 else:
     st.info("Upload a file in the sidebar to begin!")
+
+```
