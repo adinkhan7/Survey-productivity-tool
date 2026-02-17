@@ -135,6 +135,7 @@ if uploaded_file is not None:
     if isinstance(df.columns, pd.MultiIndex):
         st.sidebar.warning("MultiIndex detected. Flattening columns.")
         df.columns = ['_'.join(map(str, col)).strip() for col in df.columns]
+    
     if df.columns.duplicated().any():
         st.sidebar.warning("Duplicates detected. Renaming.")
         new_columns = []
@@ -151,4 +152,113 @@ if uploaded_file is not None:
     with st.sidebar.expander("Column Mapping", expanded=True):
         col_options = ['Select a column'] + list(df.columns)
         consent_col = st.selectbox("Consent Column (optional)", col_options, index=0)
-        enum_
+        enum_col = st.selectbox("Enumerator Column", col_options, 
+                               index=col_options.index('enum') if 'enum' in col_options else 0)
+        grouping_var_col = st.selectbox("Address (Optional)", col_options, index=0)
+        grouping_var_col_2 = st.selectbox("Additional Grouping (Optional)", col_options, index=0)
+        date_col = st.selectbox("Date Column", col_options, 
+                               index=col_options.index('starttime') if 'starttime' in col_options else 0)
+
+    if not all([enum_col != 'Select a column', date_col != 'Select a column']):
+        st.sidebar.warning("Select Enumerator and Date columns.")
+        st.stop()
+
+    # Create local names for processing
+    rename_dict = {enum_col: 'enum_internal'}
+    if consent_col != 'Select a column':
+        rename_dict[consent_col] = 'consent_internal'
+    if grouping_var_col != 'Select a column':
+        rename_dict[grouping_var_col] = 'group1_internal'
+    if grouping_var_col_2 != 'Select a column':
+        rename_dict[grouping_var_col_2] = 'group2_internal'
+    
+    df_proc = df.rename(columns=rename_dict)
+
+    try:
+        df_proc['date_internal'] = pd.to_datetime(df_proc[date_col], errors='coerce').dt.date
+        df_proc = df_proc.dropna(subset=['date_internal'])
+    except Exception as e:
+        st.sidebar.error(f"Date conversion error: {e}")
+        st.stop()
+
+    def safe_to_string(x):
+        try:
+            if x is None or pd.isna(x): return 'Unknown'
+            return str(x).strip()
+        except: return 'Unknown'
+
+    df_proc['enum_internal'] = df_proc['enum_internal'].map(safe_to_string)
+    
+    group_cols = ['enum_internal']
+    
+    if 'group1_internal' in df_proc.columns:
+        df_proc['group1_internal'] = df_proc['group1_internal'].map(safe_to_string)
+        group_cols.append('group1_internal')
+    
+    if 'group2_internal' in df_proc.columns:
+        df_proc['group2_internal'] = df_proc['group2_internal'].map(safe_to_string)
+        group_cols.append('group2_internal')
+
+    if 'consent_internal' in df_proc.columns:
+        def categorize_consent(x):
+            x_str = str(x).lower().strip()
+            return 'Yes' if x_str in ['1', 'yes', 'true', 'y'] else 'No'
+        df_proc['Consent_Status'] = df_proc['consent_internal'].apply(categorize_consent)
+        group_cols.append('Consent_Status')
+
+    daily_counts = df_proc.groupby(group_cols + ['date_internal']).size().reset_index(name='daily_count')
+    
+    reshaped = daily_counts.pivot_table(
+        index=group_cols,
+        columns='date_internal',
+        values='daily_count',
+        aggfunc='sum',
+        fill_value=0
+    ).reset_index()
+
+    # Final label cleaning for display
+    final_rename = {'enum_internal': enum_col}
+    if grouping_var_col != 'Select a column': final_rename['group1_internal'] = grouping_var_col
+    if grouping_var_col_2 != 'Select a column': final_rename['group2_internal'] = grouping_var_col_2
+    
+    reshaped = reshaped.rename(columns=final_rename)
+    
+    # Identify non-date columns for Total calculation
+    id_vars = [v for v in reshaped.columns if not isinstance(v, (datetime, pd.Timestamp, datetime.date))]
+    date_vars = [v for v in reshaped.columns if v not in id_vars]
+    
+    reshaped['Total'] = reshaped[date_vars].sum(axis=1)
+
+    # Format Date Headers
+    pretty_renamed = {}
+    for col in reshaped.columns:
+        if isinstance(col, (datetime, pd.Timestamp, datetime.date)):
+            if header_style == "Pretty (e.g., 10 Sep 2025)":
+                pretty_renamed[col] = col.strftime('%d %b %Y')
+            elif header_style == "Compact (e.g., 10Sep2025)":
+                pretty_renamed[col] = col.strftime('%d%b%Y')
+            elif header_style == "ISO (e.g., 2025-09-10)":
+                pretty_renamed[col] = col.strftime('%Y-%m-%d')
+            else:
+                pretty_renamed[col] = col.strftime('d_%d%b%Y')
+    
+    reshaped = reshaped.rename(columns=pretty_renamed)
+
+    st.subheader("Preview")
+    st.dataframe(reshaped, use_container_width=True)
+
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            reshaped.to_excel(writer, sheet_name='Daily_survey_by_enum', index=False)
+        output.seek(0)
+        st.download_button(
+            label="Download Excel",
+            data=output.getvalue(),
+            file_name=f"productivity_{datetime.now().strftime('%Y%m%d')}.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            use_container_width=True
+        )
+else:
+    st.info("Upload a file in the sidebar to begin!")
