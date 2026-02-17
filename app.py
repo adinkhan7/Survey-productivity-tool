@@ -1,12 +1,6 @@
-Here is the updated code. I have added a new optional input field called **"Additional Grouping (Optional)"**.
 
-I have ensured that:
 
-1. It appears in the sidebar below the "Address" field.
-2. It uses the same robust `safe_to_string` conversion logic as the other fields, so it will accept **bytes, integers, strings, categories, or floats** without crashing.
-3. No other logic or styling was altered.
-
-```python
+python
 import streamlit as st
 import pandas as pd
 import pyreadstat
