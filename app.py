@@ -71,7 +71,7 @@ try:
 
         df = pd.read_excel(io.BytesIO(file_bytes))
 
-    st.sidebar.success(f"{len(df)} rows loaded")
+    st.sidebar.success(f"{len(df):,} rows loaded")
 
 except Exception as e:
 
@@ -272,19 +272,47 @@ pretty.rename(columns=rename_pretty, inplace=True)
 # ---------------- FINAL SAFETY ----------------
 pretty = pretty.loc[:, ~pretty.columns.duplicated()]
 
-# ---------------- SHOW ----------------
+# ---------------- SHOW PREVIEW (LIMITED FOR PERFORMANCE) ----------------
 st.subheader("Preview")
 
-st.dataframe(pretty, use_container_width=True)
+st.dataframe(
+    pretty.head(1000),
+    use_container_width=True
+)
 
-# ---------------- DOWNLOAD ----------------
-output = io.BytesIO()
+st.caption(f"Showing first 1,000 rows of {len(pretty):,}")
 
-with pd.ExcelWriter(output, engine="openpyxl") as writer:
-    pretty.to_excel(writer, index=False)
+# ---------------- DOWNLOAD (STREAM-SAFE, MEMORY SAFE) ----------------
+file_name = f"productivity_{datetime.now().strftime('%Y%m%d')}.xlsx"
+file_path = os.path.join(tempfile.gettempdir(), file_name)
+
+with pd.ExcelWriter(
+    file_path,
+    engine="openpyxl",
+    engine_kwargs={"write_only": True}
+) as writer:
+
+    pretty.to_excel(
+        writer,
+        index=False,
+        sheet_name="Productivity"
+    )
+
+with open(file_path, "rb") as f:
+
+    st.download_button(
+        "Download Excel",
+        data=f,
+        file_name=file_name,
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+# ---------------- CSV OPTION (FASTER FOR LARGE FILES) ----------------
+csv_data = pretty.to_csv(index=False).encode("utf-8")
 
 st.download_button(
-    "Download Excel",
-    output.getvalue(),
-    file_name=f"productivity_{datetime.now().strftime('%Y%m%d')}.xlsx"
+    "Download CSV (Faster)",
+    data=csv_data,
+    file_name=file_name.replace(".xlsx", ".csv"),
+    mime="text/csv"
 )
