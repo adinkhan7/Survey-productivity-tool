@@ -49,7 +49,6 @@ with st.sidebar:
 # ---------------- TITLE ----------------
 st.title("Enumerator Daily Survey Productivity Tool")
 
-# ---------------- MAIN ----------------
 if uploaded_file is None:
     st.info("Upload a file from sidebar.")
     st.stop()
@@ -69,6 +68,7 @@ try:
         os.unlink(tmp_path)
 
     else:
+
         df = pd.read_excel(io.BytesIO(file_bytes))
 
     st.sidebar.success(f"{len(df)} rows loaded")
@@ -78,13 +78,13 @@ except Exception as e:
     st.error(e)
     st.stop()
 
-# ---------------- FIX COLUMNS ----------------
+# ---------------- FIX COLUMN NAMES ----------------
 if isinstance(df.columns, pd.MultiIndex):
     df.columns = ["_".join(map(str, col)) for col in df.columns]
 
-df.columns = [str(c) for c in df.columns]
+df.columns = [str(c).strip() for c in df.columns]
 
-# ---------------- COLUMN SELECTION ----------------
+# ---------------- COLUMN SELECT ----------------
 col_options = ["Select a column"] + list(df.columns)
 
 enum_col = st.sidebar.selectbox(
@@ -119,46 +119,49 @@ if enum_col == "Select a column" or date_col == "Select a column":
     st.stop()
 
 # ---------------- RENAME ----------------
-rename = {enum_col: "enum", date_col: "date"}
+rename_map = {
+    enum_col: "enum",
+    date_col: "date"
+}
 
 if consent_col != "Select a column":
-    rename[consent_col] = "consent"
+    rename_map[consent_col] = "consent"
 
 if addr1_col != "Select a column":
-    rename[addr1_col] = "addr1"
+    rename_map[addr1_col] = "addr1"
 
 if addr2_col != "Select a column":
-    rename[addr2_col] = "addr2"
+    rename_map[addr2_col] = "addr2"
 
-df = df.rename(columns=rename)
+df = df.rename(columns=rename_map)
 
-# ---------------- DATE ----------------
+# ---------------- DATE CLEAN ----------------
 df["date"] = pd.to_datetime(df["date"], errors="coerce")
 
 df = df.dropna(subset=["date"])
 
-# ---------------- CLEAN STRINGS ----------------
-def clean(x):
+df["date"] = df["date"].dt.normalize()
 
+# ---------------- CLEAN STRING FIELDS ----------------
+def clean(x):
     if pd.isna(x):
         return "Unknown"
-
     return str(x).strip()
 
 df["enum"] = df["enum"].apply(clean)
 
-if "addr1" in df:
+if "addr1" in df.columns:
     df["addr1"] = df["addr1"].apply(clean)
 
-if "addr2" in df:
+if "addr2" in df.columns:
     df["addr2"] = df["addr2"].apply(clean)
 
 # ---------------- CONSENT ----------------
-if "consent" in df:
+if "consent" in df.columns:
 
     def map_consent(x):
 
-        x = str(x).lower()
+        x = str(x).lower().strip()
 
         if x in ["yes", "1", "true", "y"]:
             return "Yes"
@@ -170,36 +173,60 @@ if "consent" in df:
 # ---------------- GROUP COLS ----------------
 group_cols = ["enum"]
 
-if "addr1" in df:
+if "addr1" in df.columns:
     group_cols.append("addr1")
 
-if "addr2" in df:
+if "addr2" in df.columns:
     group_cols.append("addr2")
 
-if "Consent_Status" in df:
+if "Consent_Status" in df.columns:
     group_cols.append("Consent_Status")
 
 # ---------------- COUNT ----------------
 daily = (
-    df.groupby(group_cols + ["date"])
+    df.groupby(group_cols + ["date"], dropna=False)
     .size()
     .reset_index(name="count")
 )
 
 # ---------------- PIVOT ----------------
-pivot = daily.pivot_table(
-    index=group_cols,
-    columns="date",
-    values="count",
-    fill_value=0
-).reset_index()
+pivot = (
+    daily.pivot_table(
+        index=group_cols,
+        columns="date",
+        values="count",
+        fill_value=0,
+        aggfunc="sum"
+    )
+    .reset_index()
+)
 
-# ---------------- FIX COLUMN TYPES ----------------
-pivot.columns = [
-    str(c) if not isinstance(c, pd.Timestamp)
-    else "d_" + c.strftime("%d%b%Y")
-    for c in pivot.columns
-]
+# ---------------- SAFE UNIQUE COLUMN NAMES ----------------
+new_cols = []
+seen = {}
+
+for col in pivot.columns:
+
+    if isinstance(col, pd.Timestamp):
+
+        base = "d_" + col.strftime("%d%b%Y")
+
+    else:
+
+        base = str(col)
+
+    if base in seen:
+
+        seen[base] += 1
+        base = f"{base}_{seen[base]}"
+
+    else:
+
+        seen[base] = 0
+
+    new_cols.append(base)
+
+pivot.columns = new_cols
 
 # ---------------- TOTAL ----------------
 date_cols = [c for c in pivot.columns if c.startswith("d_")]
@@ -209,29 +236,41 @@ pivot["Total"] = pivot[date_cols].sum(axis=1)
 # ---------------- PRETTY HEADERS ----------------
 pretty = pivot.copy()
 
-new_names = {}
+rename_pretty = {}
+seen_pretty = {}
 
 for col in pretty.columns:
 
     if col.startswith("d_"):
 
-        raw = col[2:]
+        raw = col.split("_")[1]
 
         dt = datetime.strptime(raw, "%d%b%Y")
 
         if header_style.startswith("Pretty"):
-            new_names[col] = dt.strftime("%d %b %Y")
+            name = dt.strftime("%d %b %Y")
 
         elif header_style.startswith("Compact"):
-            new_names[col] = dt.strftime("%d%b%Y")
+            name = dt.strftime("%d%b%Y")
 
         elif header_style.startswith("ISO"):
-            new_names[col] = dt.strftime("%Y-%m-%d")
+            name = dt.strftime("%Y-%m-%d")
 
         else:
-            new_names[col] = col
+            name = col
 
-pretty.rename(columns=new_names, inplace=True)
+        if name in seen_pretty:
+            seen_pretty[name] += 1
+            name = f"{name}_{seen_pretty[name]}"
+        else:
+            seen_pretty[name] = 0
+
+        rename_pretty[col] = name
+
+pretty.rename(columns=rename_pretty, inplace=True)
+
+# ---------------- FINAL SAFETY ----------------
+pretty = pretty.loc[:, ~pretty.columns.duplicated()]
 
 # ---------------- SHOW ----------------
 st.subheader("Preview")
