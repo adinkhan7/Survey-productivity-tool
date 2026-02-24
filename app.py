@@ -411,7 +411,7 @@ if "addr2" in df.columns:         group_cols.append("addr2")
 if "Consent_Status" in df.columns: group_cols.append("Consent_Status")
 
 daily = (
-    df.groupby(group_cols + ["date"], dropna=False)
+    df.groupby(group_cols + ["date"], dropna=False, observed=True)
     .size()
     .reset_index(name="count")
 )
@@ -422,7 +422,8 @@ pivot = (
         columns="date",
         values="count",
         fill_value=0,
-        aggfunc="sum"
+        aggfunc="sum",
+        observed=True
     )
     .reset_index()
 )
@@ -449,9 +450,9 @@ date_cols = [c for c in pivot.columns if c.startswith("d_")]
 # ─────────────────────────────────────────────
 # TOTALS & STATS
 # ─────────────────────────────────────────────
-pivot["Total"]    = pivot[date_cols].sum(axis=1)
-pivot["Avg/Day"]  = (pivot[date_cols].replace(0, np.nan).mean(axis=1)).round(1)
-pivot["Days Active"] = (pivot[date_cols] > 0).sum(axis=1)
+pivot["Total"]       = pivot[date_cols].sum(axis=1).astype(int)
+pivot["Avg/Day"]     = pivot[date_cols].replace(0, np.nan).mean(axis=1).round(1)
+pivot["Days Active"] = (pivot[date_cols] > 0).sum(axis=1).astype(int)
 
 # Outlier flags per enumerator
 def flag_enum(row):
@@ -504,7 +505,14 @@ for col in pretty.columns:
     if col in group_cols:
         daily_total_row[col] = "── TOTAL ──" if col == "enum" else ""
     elif col in ["Total", "Avg/Day", "Days Active", "QC Flag"]:
-        daily_total_row[col] = pretty[col].sum() if col in ["Total", "Days Active"] else ""
+        if col == "Total":
+            daily_total_row[col] = int(pretty[col].sum())
+        elif col == "Days Active":
+            daily_total_row[col] = int(pretty[col].sum())
+        elif col == "Avg/Day":
+            daily_total_row[col] = round(float(pretty[col].mean()), 1)
+        else:
+            daily_total_row[col] = "──"
     else:
         try:
             daily_total_row[col] = pretty[col].sum()
@@ -513,6 +521,8 @@ for col in pretty.columns:
 
 totals_row = pd.DataFrame([daily_total_row])
 pretty_with_totals = pd.concat([pretty, totals_row], ignore_index=True)
+# Keep numeric columns properly typed
+pretty_with_totals["Avg/Day"] = pd.to_numeric(pretty_with_totals["Avg/Day"], errors="coerce")
 
 # ─────────────────────────────────────────────
 # TABS
@@ -549,12 +559,12 @@ with tab1:
 
     styled = (
         pretty_with_totals.style
-        .applymap(heatmap_style, subset=[c for c in date_display_cols if c in pretty_with_totals.columns])
-        .applymap(qc_style, subset=["QC Flag"] if "QC Flag" in pretty_with_totals.columns else [])
+        .map(heatmap_style, subset=[c for c in date_display_cols if c in pretty_with_totals.columns])
+        .map(qc_style, subset=["QC Flag"] if "QC Flag" in pretty_with_totals.columns else [])
         .set_properties(**{"font-family": "IBM Plex Mono, monospace", "font-size": "12px"})
     )
 
-    st.dataframe(styled, use_container_width=True, height=500)
+    st.dataframe(styled, width="stretch", height=500)
 
     st.caption(f"🔵 Normal  🟠 Below threshold (<{outlier_low})  🟢 Above threshold (>{outlier_high})  ⚫ Zero submissions")
 
@@ -593,7 +603,7 @@ with tab2:
         ))
         fig = apply_dark_theme(fig)
         fig.update_layout(height=400, showlegend=False)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     # ── Bar: Avg per day per enumerator
     with col_b:
@@ -607,7 +617,7 @@ with tab2:
         ))
         fig2 = apply_dark_theme(fig2)
         fig2.update_layout(height=400, showlegend=False)
-        st.plotly_chart(fig2, use_container_width=True)
+        st.plotly_chart(fig2, width="stretch")
 
     # ── Line: Daily totals over time
     st.markdown('<div class="section-header">Daily Submission Volume</div>', unsafe_allow_html=True)
@@ -636,7 +646,7 @@ with tab2:
         ))
     fig3 = apply_dark_theme(fig3)
     fig3.update_layout(height=300, legend=dict(orientation="h", yanchor="bottom", y=1.02))
-    st.plotly_chart(fig3, use_container_width=True)
+    st.plotly_chart(fig3, width="stretch")
 
     # ── Heatmap: Enumerator × Day
     st.markdown('<div class="section-header">Enumerator Activity Heatmap</div>', unsafe_allow_html=True)
@@ -652,7 +662,7 @@ with tab2:
     ))
     fig4 = apply_dark_theme(fig4)
     fig4.update_layout(height=max(300, len(heat_data) * 22 + 80))
-    st.plotly_chart(fig4, use_container_width=True)
+    st.plotly_chart(fig4, width="stretch")
 
     # ── Consent pie (if available)
     if "Consent_Status" in df.columns:
@@ -668,7 +678,7 @@ with tab2:
         fig5 = apply_dark_theme(fig5)
         fig5.update_layout(height=320, showlegend=True,
                            legend=dict(orientation="h", yanchor="bottom", y=-0.15))
-        st.plotly_chart(fig5, use_container_width=True)
+        st.plotly_chart(fig5, width="stretch")
 
 # ── TAB 3: QC REPORT ──
 with tab3:
@@ -680,11 +690,11 @@ with tab3:
         st.markdown('<div class="info-box">✓ No QC flags raised. All enumerators within thresholds.</div>', unsafe_allow_html=True)
     else:
         st.markdown(f'<div class="warning-box">⚠ {len(flagged)} enumerator(s) have QC flags.</div>', unsafe_allow_html=True)
-        st.dataframe(flagged, use_container_width=True)
+        st.dataframe(flagged, width="stretch")
 
     st.markdown('<div class="section-header">Enumerator Summary Statistics</div>', unsafe_allow_html=True)
     summary = pretty[["enum", "Total", "Avg/Day", "Days Active", "QC Flag"]].sort_values("Total", ascending=False)
-    st.dataframe(summary, use_container_width=True, height=400)
+    st.dataframe(summary, width="stretch", height=400)
 
     if duplicate_warnings:
         st.markdown('<div class="section-header">Duplicate Warnings</div>', unsafe_allow_html=True)
@@ -693,7 +703,7 @@ with tab3:
         if "uid" in df.columns:
             dup_df = df[df.duplicated(subset=["uid"], keep=False)].sort_values("uid")
             show_cols = ["uid", "enum", "date"] + (["addr1"] if "addr1" in df.columns else [])
-            st.dataframe(dup_df[show_cols], use_container_width=True, height=300)
+            st.dataframe(dup_df[show_cols], width="stretch", height=300)
 
     st.markdown('<div class="section-header">Coverage Gap Analysis</div>', unsafe_allow_html=True)
     all_dates = pd.date_range(df["date"].min(), df["date"].max(), freq="D")
