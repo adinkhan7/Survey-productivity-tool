@@ -405,7 +405,7 @@ with tab4:
 
             # Header
             hfill=PatternFill("solid",fgColor="1A1A1A")
-            hfont=Font(name="Calibri",bold=True,color="FFFFFF",size=10)
+            hfont=Font(name="Garamond",bold=True,color="FFFFFF",size=11)
             hbdr =Border(bottom=Side(style="medium",color="C01823"))
             for cell in ws[1]:
                 cell.fill=hfill; cell.font=hfont
@@ -423,35 +423,22 @@ with tab4:
                         nvals.append(cell.value)
             max_val=max(nvals) if nvals else 1
 
-            def excel_style(val):
-                """Returns (fill_or_None, Font) — None fill = no fill (white background)."""
-                if val is None or val==0:
-                    return None, Font(color="CCCCCC",size=9,name="Calibri")
-                if val<outlier_low:
-                    return PatternFill("solid",fgColor="FFF3CD"), Font(color="856404",bold=True,size=9,name="Calibri")
-                if val>outlier_high:
-                    return PatternFill("solid",fgColor="D4EDDA"), Font(color="155724",bold=True,size=9,name="Calibri")
-                # Normal: no fill, font goes light grey (#AAAAAA) → near-black (#191919)
-                intensity = min(val/max_val, 1.0)
-                gv  = int(170 - 145*intensity)   # 170 (light) → 25 (dark)
-                hex_g = f"{gv:02X}"*3
-                return None, Font(color=hex_g,size=9,name="Calibri")
+            FONT_NORMAL = Font(name="Garamond", size=11, color="222222")
+            FONT_ZERO   = Font(name="Garamond", size=11, color="CCCCCC")
 
-            for row in ws.iter_rows(min_row=2,max_row=ws.max_row-1):
+            for row in ws.iter_rows(min_row=2, max_row=ws.max_row-1):
                 for cell in row:
                     if cell.column in date_col_idx:
-                        fill,fnt=excel_style(cell.value)
-                        if fill is not None: cell.fill=fill
-                        cell.font=fnt
+                        cell.font = FONT_ZERO if (cell.value is None or cell.value == 0) else FONT_NORMAL
                     else:
-                        cell.font=Font(name="Calibri",size=9)
-                    cell.alignment=Alignment(horizontal="center")
+                        cell.font = FONT_NORMAL
+                    cell.alignment = Alignment(horizontal="center")
 
             # Totals row
             tf=PatternFill("solid",fgColor="F2F2F2")
             for cell in ws[ws.max_row]:
                 cell.fill=tf
-                cell.font=Font(name="Calibri",bold=True,color="333333",size=9)
+                cell.font=Font(name="Garamond",bold=True,color="333333",size=11)
                 cell.border=Border(top=Side(style="thin",color="CCCCCC"))
                 cell.alignment=Alignment(horizontal="center")
 
